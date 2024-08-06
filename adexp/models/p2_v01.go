@@ -18,14 +18,14 @@ func (data *P2V01Model) Write(s string) error {
 		var err error
 		switch item.FRN {
 		case 1:
-			data.TITLE, err = parseBasicField(s, item.DataItem)
+			data.TITLE, err = parseBasicField(s, item)
 			if err != nil {
 				return err
 			}
 		case 2:
 			//data.REFDATA = parseREFDATA(s)
 		case 3:
-			data.ARCID, err = parseBasicField(s, item.DataItem)
+			data.ARCID, err = parseBasicField(s, item)
 			if err != nil {
 				return err
 			}

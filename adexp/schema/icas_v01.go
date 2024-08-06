@@ -56,5 +56,17 @@ var IcasV01 = StandardUAP{
 			Description: "Individual flight plan id",
 			Type:        Basicfield,
 		},
+		{
+			FRN:         9,
+			DataItem:    "EOBT",
+			Description: "Estimated off block time",
+			Type:        Basicfield,
+		},
+		{
+			FRN:         10,
+			DataItem:    "ELDT",
+			Description: "Estimated landing time",
+			Type:        Basicfield,
+		},
 	},
 }

@@ -3,6 +3,8 @@ package models
 import (
 	"errors"
 	"fmt"
+	"log"
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -53,9 +55,9 @@ func parseREFDATA(s string) (REFDATA, error) {
 	return refdata, nil
 }
 
-func parseBasicField(s string, f string) (string, error) {
+func parseBasicField(s string, f schema.DataField) (string, error) {
 	s = strings.ReplaceAll(s, "\n", "")
-	start := strings.Index(s, f)
+	start := strings.Index(s, f.DataItem)
 	if start == -1 {
 		return "", schema.ErrorFieldNotPresent
 	}
@@ -93,51 +95,33 @@ func (data *IcasV01Model) Write(s string) error {
 		return fmt.Errorf("empty message")
 	}
 	//
+
+	d := reflect.ValueOf(data)
+	e := d.Elem()
+
 	for _, item := range schema.IcasV01.Items {
-		var err error
-		switch item.FRN {
+		f := e.FieldByName(item.DataItem)
+		if !f.IsValid() {
+			log.Printf("Skipped %s bacause is not valid field", item.DataItem)
+			continue
+		}
+		if !f.CanSet() {
+			log.Printf("Skipped %s bacause can not be set", item.DataItem)
+			continue
+		}
+
+		switch item.Type {
+		case 0:
+			g, err := parseBasicField(s, item)
+			if errors.Is(err, schema.ErrorFieldNotPresent) && item.Mendatory {
+				return fmt.Errorf("error: mendatory %s: %s", err, item.DataItem)
+			}
+			f.SetString(g)
 		case 1:
-			data.TITLE, err = parseBasicField(s, item.DataItem)
-			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
-				return fmt.Errorf("%v: %s", err, "TITLE")
-			}
+			//log.Printf("List field %s needs to be implemented", item.DataItem)
 		case 2:
-			data.REFDATA, err = parseREFDATA(s)
-			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
-				return err
-			}
-		case 3:
-			data.ARCID, err = parseBasicField(s, item.DataItem)
-			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
-				return err
-			}
-		case 4:
-			data.SSRCODE, err = parseBasicField(s, item.DataItem)
-			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
-				return err
-			}
-		case 5:
-			data.ADEP, err = parseBasicField(s, item.DataItem)
-			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
-				return err
-			}
-		case 6:
-			data.ADES, err = parseBasicField(s, item.DataItem)
-			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
-				return err
-			}
-		case 7:
-			data.ARCTYP, err = parseBasicField(s, item.DataItem)
-			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
-				return err
-			}
-		case 8:
-			data.IFPLID, err = parseBasicField(s, item.DataItem)
-			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
-				return err
-			}
+			//log.Printf("Structured field %s needs to be implemented", item.DataItem)
 		default:
-			//fmt.Printf("Unrecognized field %v\n", item.DataItem)
 		}
 	}
 	return nil

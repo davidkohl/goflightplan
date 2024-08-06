@@ -12,7 +12,11 @@ import (
 )
 
 func main() {
-	v := os.Getenv("schema")
+	var v string
+	var ok bool
+	if v, ok = os.LookupEnv("schema"); !ok {
+		log.Fatalf("Mendatory env %s not present", "schema")
+	}
 	files, err := os.ReadDir("adexp/test")
 	if err != nil {
 		log.Fatal(err)
@@ -35,7 +39,7 @@ func main() {
 			}
 			err = a.Write(input)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 
@@ -44,7 +48,7 @@ func main() {
 				fmt.Println(err)
 			}
 			_ = j
-			fmt.Println(string(j))
+			log.Println(string(j))
 		}
 	}
 

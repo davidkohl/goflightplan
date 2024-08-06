@@ -36,7 +36,7 @@ func (data *IcasV02Model) Write(s string) error {
 		var err error
 		switch item.FRN {
 		case 1:
-			data.TITLE, err = parseBasicField(s, item.DataItem)
+			data.TITLE, err = parseBasicField(s, item)
 			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
 				return fmt.Errorf("%v: %s", err, item.DataItem)
 			}
@@ -46,37 +46,37 @@ func (data *IcasV02Model) Write(s string) error {
 				return fmt.Errorf("%v: %s", err, item.DataItem)
 			}
 		case 3:
-			data.ARCID, err = parseBasicField(s, item.DataItem)
+			data.ARCID, err = parseBasicField(s, item)
 			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
 				return fmt.Errorf("%v: %s", err, item.DataItem)
 			}
 		case 4:
-			data.SSRCODE, err = parseBasicField(s, item.DataItem)
+			data.SSRCODE, err = parseBasicField(s, item)
 			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
 				return fmt.Errorf("%v: %s", err, item.DataItem)
 			}
 		case 5:
-			data.ADEP, err = parseBasicField(s, item.DataItem)
+			data.ADEP, err = parseBasicField(s, item)
 			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
 				return fmt.Errorf("%v: %s", err, item.DataItem)
 			}
 		case 6:
-			data.ADES, err = parseBasicField(s, item.DataItem)
+			data.ADES, err = parseBasicField(s, item)
 			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
 				return fmt.Errorf("%v: %s", err, item.DataItem)
 			}
 		case 7:
-			data.ARCTYP, err = parseBasicField(s, item.DataItem)
+			data.ARCTYP, err = parseBasicField(s, item)
 			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
 				return fmt.Errorf("%v: %s", err, item.DataItem)
 			}
 		case 8:
-			data.IFPLID, err = parseBasicField(s, item.DataItem)
+			data.IFPLID, err = parseBasicField(s, item)
 			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
 				return fmt.Errorf("%v: %s", err, item.DataItem)
 			}
 		case 9:
-			data.ROUTE, err = parseBasicField(s, item.DataItem)
+			data.ROUTE, err = parseBasicField(s, item)
 			if item.Mendatory && errors.Is(err, schema.ErrorFieldNotPresent) {
 				return fmt.Errorf("%v: %s", err, item.DataItem)
 			}
