@@ -1,4 +1,4 @@
-package schema
+package adexp
 
 import "fmt"
 
@@ -8,7 +8,7 @@ const (
 	StructuredField
 )
 
-type StandardUAP struct {
+type StandardSchema struct {
 	Name     string
 	Category string
 	Version  float64
@@ -26,6 +26,11 @@ type DataField struct {
 
 type ADEXPModel interface {
 	Write(s string) error
+}
+
+type MessageSet struct {
+	Name string
+	Set  map[string]StandardSchema
 }
 
 var ErrorFieldNotPresent = fmt.Errorf("field not present")

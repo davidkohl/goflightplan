@@ -7,16 +7,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"gitlab.com/davidkohl/goflightplan/adexp/models"
-	"gitlab.com/davidkohl/goflightplan/adexp/schema"
+	"gitlab.com/davidkohl/goflightplan"
 )
 
 func main() {
-	var v string
-	var ok bool
-	if v, ok = os.LookupEnv("schema"); !ok {
-		log.Fatalf("Mendatory env %s not present", "schema")
-	}
 	files, err := os.ReadDir("adexp/test")
 	if err != nil {
 		log.Fatal(err)
@@ -30,13 +24,8 @@ func main() {
 				log.Fatal(err)
 			}
 			input := string(content)
-			var a schema.ADEXPModel
-			switch v {
-			case "icasv01":
-				a = &models.IcasV01Model{}
-			case "icasv02":
-				a = &models.IcasV02Model{}
-			}
+			var a goflightplan.Flightplan
+
 			err = a.Write(input)
 			if err != nil {
 				log.Println(err)

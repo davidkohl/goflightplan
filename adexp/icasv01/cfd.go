@@ -1,66 +1,78 @@
-package schema
+package icasv01
 
-var IcasV02 = StandardUAP{
-	Name:     "icas_0.2",
-	Category: "BFD",
-	Version:  0.2,
-	Items: []DataField{
+import "gitlab.com/davidkohl/goflightplan/adexp"
+
+func init() {
+	MessageSet["CFD"] = CFD
+}
+
+var CFD = adexp.StandardSchema{
+	Name:     "icas_0.1",
+	Category: "CFD",
+	Version:  0.1,
+	Items: []adexp.DataField{
 		{
 			FRN:         1,
 			DataItem:    "TITLE",
 			Description: "Title of the ADEXP Message",
-			Type:        Basicfield,
+			Type:        adexp.Basicfield,
 			Mendatory:   true,
 		},
 		{
 			FRN:         2,
 			DataItem:    "REFDATA",
 			Description: "Message Reference with sender, receiver and sequence number",
-			Type:        StructuredField,
+			Type:        adexp.StructuredField,
 			Mendatory:   true,
 		},
 		{
 			FRN:         3,
 			DataItem:    "ARCID",
 			Description: "Aircraft id or callsign",
-			Type:        Basicfield,
+			Type:        adexp.Basicfield,
 			Mendatory:   true,
 		},
 		{
 			FRN:         4,
 			DataItem:    "SSRCODE",
 			Description: "Assigned SSRCODE",
-			Type:        Basicfield,
+			Type:        adexp.Basicfield,
 		},
 		{
 			FRN:         5,
 			DataItem:    "ADEP",
 			Description: "Aerodrom of departure",
-			Type:        Basicfield,
+			Type:        adexp.Basicfield,
 		},
 		{
 			FRN:         6,
 			DataItem:    "ADES",
 			Description: "Aerodrom of destination",
-			Type:        Basicfield,
+			Type:        adexp.Basicfield,
 		},
 		{
 			FRN:         7,
 			DataItem:    "ARCTYP",
 			Description: "Aircraft type",
-			Type:        Basicfield,
+			Type:        adexp.Basicfield,
 		},
 		{
 			FRN:         8,
 			DataItem:    "IFPLID",
 			Description: "Individual flight plan id",
-			Type:        Basicfield,
+			Type:        adexp.Basicfield,
 		},
 		{
 			FRN:         9,
-			DataItem:    "ROUTE",
-			Description: "Route field",
-			Type:        Basicfield,
+			DataItem:    "EOBT",
+			Description: "Estimated off block time",
+			Type:        adexp.Basicfield,
+		},
+		{
+			FRN:         10,
+			DataItem:    "ELDT",
+			Description: "Estimated landing time",
+			Type:        adexp.Basicfield,
 		},
 	},
 }
