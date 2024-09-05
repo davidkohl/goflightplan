@@ -50,7 +50,7 @@ func (p *ADEXPParser) Parse(s string) (*goflightplan.FlightplanWrapper, error) {
 	var fplwrapper = goflightplan.NewFlightplanWrapper()
 	t, err := getTitle(s)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("could not get message type. TITLE field is missing: %s ", s))
+		return nil, fmt.Errorf("could not get message type. TITLE field is missing: %s ", s)
 	}
 	for _, v := range p.MessageSchemaSet {
 		_ = v
@@ -66,13 +66,17 @@ func (p *ADEXPParser) Parse(s string) (*goflightplan.FlightplanWrapper, error) {
 			d := reflect.ValueOf(fpl)
 			e := d.Elem()
 			for _, v := range v.Items {
-				f := e.FieldByName(v.DataItem)
+				var f reflect.Value
+				f = e.FieldByName(v.DataItem)
+				if v.Target != "" {
+					f = e.FieldByName(v.Target)
+				}
 				if !f.IsValid() {
-					log.Printf("Skipped %s bacause is not valid field", v.DataItem)
+					log.Printf("Skipped %s bacause is not valid field", f)
 					continue
 				}
 				if !f.CanSet() {
-					log.Printf("Skipped %s bacause can not be set", v.DataItem)
+					log.Printf("Skipped %s bacause can not be set", f)
 					continue
 				}
 				e.Type()

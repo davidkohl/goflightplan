@@ -51,12 +51,15 @@ type Flightplan struct {
 	EOBD    string  `json:"eobd,omitempty"`
 	EELT    string  `json:"eelt,omitempty"`
 	ELDT    string  `json:"eldt,omitempty"`
-	CTOT    string  `json:"ctot,omitempty"`
-	NEWCTOT string  `json:"newctot,omitempty"`
-	IFPLID  string  `json:"ifplid,omitempty"`
-	SID     string  `json:"sid,omitempty"`
-	STAR    string  `json:"star,omitempty"`
-	REG     string  `json:"reg,omitempty"`
+	ALDT    string
+	ATD     string
+	ATOT    string
+	CTOT    string `json:"ctot,omitempty"`
+	NEWCTOT string `json:"newctot,omitempty"`
+	IFPLID  string `json:"ifplid,omitempty"`
+	SID     string `json:"sid,omitempty"`
+	STAR    string `json:"star,omitempty"`
+	REG     string `json:"reg,omitempty"`
 	DOF     string
 	RMK     string
 }

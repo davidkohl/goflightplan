@@ -26,6 +26,7 @@ type DataField struct {
 	Description string
 	Type        uint8
 	Mendatory   bool
+	Target      string
 }
 
 type MessageSet struct {
@@ -58,7 +59,6 @@ func MessageSetFromJSON(p string, n string) (*MessageSet, error) {
 				fmt.Errorf("could not read file %s: %v", filePath, err)
 				return nil, err
 			}
-			fmt.Println(string(content))
 			err = json.Unmarshal(content, &schema)
 			if err != nil {
 				return nil, err
