@@ -41,7 +41,6 @@ func MessageSetFromJSON(p string, n string) (*MessageSet, error) {
 	set.Set = make(map[string]StandardSchema, 0)
 	files, err := os.ReadDir(p)
 	if err != nil {
-		fmt.Printf("could not read directory: %v\n", err)
 		return nil, err
 	}
 
@@ -56,7 +55,6 @@ func MessageSetFromJSON(p string, n string) (*MessageSet, error) {
 			content, err := os.ReadFile(filePath)
 
 			if err != nil {
-				fmt.Errorf("could not read file %s: %v", filePath, err)
 				return nil, err
 			}
 			err = json.Unmarshal(content, &schema)
