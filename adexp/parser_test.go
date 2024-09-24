@@ -57,7 +57,7 @@ func TestParse(t *testing.T) {
 					t.Errorf("Expected TITLE to be ACT, got %s", fp.Flightplan.TITLE)
 				}
 				if fp.Flightplan.ARCID != "WZZ70BK" {
-					t.Errorf("Expected WZZ70BK to be 'WMT3GH', got '%s'", fp.Flightplan.ARCID)
+					t.Errorf("Expected ARCID to be 'WMT3GH', got '%s'", fp.Flightplan.ARCID)
 				}
 				// Add more checks based on the expected content
 			},
