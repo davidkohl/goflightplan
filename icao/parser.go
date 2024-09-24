@@ -78,7 +78,7 @@ func (p *ICAOParser) Parse(s string) (*goflightplan.FlightplanWrapper, error) {
 		istart := strings.Index(s, "(")
 		iend := strings.Index(s, ")")
 		if v.Name == t {
-			tmpfpl, err := v.Fn(s[istart:iend])
+			tmpfpl, err := v.Fn(s[istart : iend+1])
 			if err != nil {
 				return nil, err
 			}

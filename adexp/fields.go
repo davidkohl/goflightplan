@@ -35,6 +35,7 @@ type MessageSet struct {
 }
 
 var ErrorFieldNotPresent = fmt.Errorf("field not present")
+var ErrorMendatory = fmt.Errorf("mendatory field not present")
 
 func MessageSetFromJSON(p string, n string) (*MessageSet, error) {
 	var set MessageSet

@@ -52,6 +52,16 @@ func (p *ADEXPParser) Parse(s string) (*goflightplan.FlightplanWrapper, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not get message type. TITLE field is missing: %s ", s)
 	}
+	if p.ParserOpts.AFTNHeader {
+		msgstart := strings.Index(s, "-TITLE")
+		msgend := strings.Index(s, "NNNN")
+		if msgstart != -1 && msgend != -1 {
+			s = s[msgstart : msgend-4]
+			s = strings.TrimSpace(s)
+		}
+
+	}
+
 	for _, v := range p.MessageSchemaSet {
 		_ = v
 		_ = t
@@ -103,6 +113,9 @@ func (p *ADEXPParser) Parse(s string) (*goflightplan.FlightplanWrapper, error) {
 
 func parseBasicField(s string, f DataField) (string, error) {
 	start := strings.Index(s, fmt.Sprintf("-%s ", f.DataItem))
+	if start == -1 && f.Mendatory {
+		return "", ErrorMendatory
+	}
 	if start == -1 {
 		return "", ErrorFieldNotPresent
 	}
@@ -111,6 +124,6 @@ func parseBasicField(s string, f DataField) (string, error) {
 	if next == -1 {
 		next = len(s)
 	}
-	sub := strings.SplitN(s[:next], " ", 2)
+	sub := strings.SplitN(s[1:next], " ", 2)
 	return strings.TrimSpace(sub[1]), nil
 }

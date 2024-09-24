@@ -51,59 +51,21 @@ type Flightplan struct {
 	EOBD    string  `json:"eobd,omitempty"`
 	EELT    string  `json:"eelt,omitempty"`
 	ELDT    string  `json:"eldt,omitempty"`
-	ALDT    string
-	ATD     string
-	ATOT    string
-	CTOT    string `json:"ctot,omitempty"`
-	NEWCTOT string `json:"newctot,omitempty"`
-	IFPLID  string `json:"ifplid,omitempty"`
-	SID     string `json:"sid,omitempty"`
-	STAR    string `json:"star,omitempty"`
-	REG     string `json:"reg,omitempty"`
-	DOF     string
-	RMK     string
+	ALDT    string  `json:"aldt,omitempty"`
+	ATD     string  `json:"atd,omitempty"`
+	ATOT    string  `json:"atot,omitempty"`
+	CTOT    string  `json:"ctot,omitempty"`
+	NEWCTOT string  `json:"newctot,omitempty"`
+	IFPLID  string  `json:"ifplid,omitempty"`
+	SID     string  `json:"sid,omitempty"`
+	STAR    string  `json:"star,omitempty"`
+	REG     string  `json:"reg,omitempty"`
+	DOF     string  `json:"dof,omitempty"`
+	RMK     string  `json:"rmk,omitempty"`
 }
 
 type REFDATA struct {
-	SENDER string
-	RECVR  string
-	SEQNUM string
+	SENDER string `json:"sender,omitempty"`
+	RECVR  string `json:"recvr,omitempty"`
+	SEQNUM string `json:"seqnum,omitempty"`
 }
-
-// func parseREFDATA(s string) (REFDATA, error) {
-
-// 	var refdata REFDATA
-// 	start := strings.Index(s, "REFDATA")
-// 	if start == -1 {
-// 		return refdata, fmt.Errorf("refdata not found")
-// 	}
-// 	iSEQNUM := strings.Index(s[:], "SEQNUM")
-// 	evalString := s[start : iSEQNUM+10]
-// 	re := regexp.MustCompile(`-\w+\s*-?\w*\s*[A-Z0-9]*`)
-
-// 	// Find all matches
-// 	matches := re.FindAllString(evalString, -1)
-
-// 	for _, match := range matches {
-// 		parts := regexp.MustCompile(`\s+`).Split(match, -1)
-// 		if len(parts) < 2 {
-// 			continue
-// 		}
-// 		switch parts[0] {
-// 		case "-SENDER":
-// 			if len(parts) > 2 && parts[1] == "-FAC" {
-// 				refdata.SENDER = parts[2]
-// 			}
-// 		case "-RECVR":
-// 			if len(parts) > 2 && parts[1] == "-FAC" {
-// 				refdata.RECVR = parts[2]
-// 			}
-// 		case "-SEQNUM":
-// 			if len(parts) > 1 {
-// 				refdata.SEQNUM = parts[1]
-// 			}
-// 		}
-// 	}
-
-// 	return refdata, nil
-// }
