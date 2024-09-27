@@ -27,6 +27,7 @@ type DataField struct {
 	Type        uint8
 	Mendatory   bool
 	Target      string
+	Subfields   []DataField
 }
 
 type MessageSet struct {
