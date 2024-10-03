@@ -2,6 +2,7 @@ package adexp
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -32,11 +33,9 @@ func (p *Parser) Parse(message string) (*goflightplan.FlightplanWrapper, error) 
 
 	for p.currentPos < len(p.message) {
 		if err := p.parseNextField(); err != nil {
-			// If it's an unknown field error, we'll just continue
 			if _, ok := err.(UnknownFieldError); ok {
 				continue
 			}
-			// For other types of errors, we'll return the error
 			return nil, fmt.Errorf("error parsing field: %w", err)
 		}
 	}
@@ -63,7 +62,7 @@ func (p *Parser) parseNextField() error {
 	}
 
 	fieldName := p.buffer.String()
-	field, err := p.findFieldInSchema(fieldName)
+	field, _, err := p.findFieldInSchema(fieldName)
 	if err != nil {
 		// If the field is not found in the schema, we'll skip it
 		p.skipUnknownField()
@@ -80,14 +79,12 @@ func (p *Parser) parseNextField() error {
 	}
 }
 
-// Add this new method to skip unknown fields
 func (p *Parser) skipUnknownField() {
 	for p.currentPos < len(p.message) && p.message[p.currentPos] != '-' {
 		p.currentPos++
 	}
 }
 
-// Define a custom error type for unknown fields
 type UnknownFieldError struct {
 	FieldName string
 }
@@ -95,6 +92,7 @@ type UnknownFieldError struct {
 func (e UnknownFieldError) Error() string {
 	return fmt.Sprintf("unknown field: %s", e.FieldName)
 }
+
 func (p *Parser) parseBasicField(field DataField) error {
 	p.buffer.Reset()
 	p.currentPos++ // Skip the space after field name
@@ -108,25 +106,104 @@ func (p *Parser) parseBasicField(field DataField) error {
 }
 
 func (p *Parser) parseStructuredField(field DataField) error {
-	// For simplicity, we'll treat structured fields as basic fields for now
-	// In a real implementation, you'd recursively parse subfields here
-	return p.parseBasicField(field)
+
+	structuredData := make(map[string]interface{})
+	for p.currentPos < len(p.message) {
+		subFieldName, subFieldValue, err := p.parseSubField(field.Subfields)
+		if err != nil {
+			return err
+		}
+		if subFieldName == "" {
+			break
+		}
+		structuredData[subFieldName] = subFieldValue
+	}
+
+	return p.setFieldValue(field, structuredData)
 }
 
-func (p *Parser) findFieldInSchema(fieldName string) (DataField, error) {
+func (p *Parser) parseSubField(subfields []DataField) (string, interface{}, error) {
+	p.buffer.Reset()
+	for p.currentPos < len(p.message) && p.message[p.currentPos] == ' ' {
+		p.currentPos++
+	}
+	if p.currentPos >= len(p.message) || p.message[p.currentPos] != '-' {
+		return "", nil, nil // End of structured field
+	}
+	p.currentPos++ // Skip the '-'
+
+	for p.currentPos < len(p.message) && p.message[p.currentPos] != ' ' {
+		p.buffer.WriteByte(p.message[p.currentPos])
+		p.currentPos++
+	}
+	subFieldName := p.buffer.String()
+
+	p.currentPos++ // Skip the space after the field name
+	p.buffer.Reset()
+
+	// Find the subfield definition
+	var subFieldDef *DataField
+	for i := range subfields {
+		if subfields[i].DataItem == subFieldName {
+			subFieldDef = &subfields[i]
+			break
+		}
+	}
+
+	if subFieldDef == nil {
+		// This might be a new top-level field, so we need to backtrack
+		p.currentPos -= len(subFieldName) + 2 // +2 for '-' and space
+		return "", nil, nil
+	}
+
+	// Handle nested structures
+	if subFieldDef.Type == StructuredField {
+		nestedData, err := p.parseNestedStructure(subFieldDef.Subfields)
+		if err != nil {
+			return "", nil, err
+		}
+		return subFieldName, nestedData, nil
+	}
+
+	// Parse simple value
+	for p.currentPos < len(p.message) && p.message[p.currentPos] != '-' {
+		p.buffer.WriteByte(p.message[p.currentPos])
+		p.currentPos++
+	}
+	subFieldValue := strings.TrimSpace(p.buffer.String())
+
+	return subFieldName, subFieldValue, nil
+}
+
+func (p *Parser) parseNestedStructure(subfields []DataField) (map[string]interface{}, error) {
+	nestedData := make(map[string]interface{})
+	for {
+		subFieldName, subFieldValue, err := p.parseSubField(subfields)
+		if err != nil {
+			return nil, err
+		}
+		if subFieldName == "" {
+			break
+		}
+		nestedData[subFieldName] = subFieldValue
+	}
+	return nestedData, nil
+}
+
+func (p *Parser) findFieldInSchema(fieldName string) (DataField, []DataField, error) {
 	for _, messageSet := range p.schema {
 		for _, schema := range messageSet.Set {
 			for _, item := range schema.Items {
 				if item.DataItem == fieldName {
-					return item, nil
+					return item, item.Subfields, nil
 				}
 			}
 		}
 	}
-	return DataField{}, fmt.Errorf("field '%s' not found in schema", fieldName)
+	return DataField{}, nil, fmt.Errorf("field '%s' not found in schema", fieldName)
 }
 
-func (p *Parser) setFieldValue(field DataField, value string) error {
+func (p *Parser) setFieldValue(field DataField, value interface{}) error {
 	v := reflect.ValueOf(p.flightplan).Elem()
 	f := v.FieldByName(field.DataItem)
 
@@ -140,13 +217,23 @@ func (p *Parser) setFieldValue(field DataField, value string) error {
 
 	switch f.Kind() {
 	case reflect.String:
-		f.SetString(value)
+		f.SetString(value.(string))
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		// You might want to add proper parsing for integers
 		return fmt.Errorf("integer parsing not implemented for field '%s'", field.DataItem)
-	// Add more types as needed
+	case reflect.Struct:
+		// For structured fields, we need to marshal the map to JSON and then unmarshal into the struct
+		mapValue, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("expected map[string]interface{} for structured field '%s', got %T", field.DataItem, value)
+		}
+		jsonData, err := json.Marshal(mapValue)
+		if err != nil {
+			return fmt.Errorf("failed to marshal structured field '%s': %w", field.DataItem, err)
+		}
+		return json.Unmarshal(jsonData, f.Addr().Interface())
 	default:
-		return nil //fmt.Errorf("unsupported type for field '%s'", field.DataItem)
+		fmt.Printf("Unhandled field type for %s: %v\n", field.DataItem, f.Kind())
 	}
 
 	return nil

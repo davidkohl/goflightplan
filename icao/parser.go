@@ -95,8 +95,8 @@ func (p *ICAOParser) Parse(s string) (*goflightplan.FlightplanWrapper, error) {
 	}
 
 	if p.ParserOpts.AFTNHeader {
-		fpl.REFDATA.SENDER = send
-		fpl.REFDATA.RECVR = rec
+		fpl.REFDATA.SENDER.FAC = send
+		fpl.REFDATA.RECVR.FAC = rec
 	}
 
 	fplw.Flightplan = *fpl
@@ -107,8 +107,7 @@ func parseFPL(s string) (*goflightplan.Flightplan, error) {
 	var fpl = &goflightplan.Flightplan{}
 	start := strings.Index(s, "(FPL-")
 	end := strings.Index(s, ")")
-	fmt.Println("start:", start, "END:", end)
-	fmt.Println(s)
+
 	if start == -1 || end == -1 {
 		return nil, errors.New("could not get start or end of ICAO message")
 	}

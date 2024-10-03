@@ -65,7 +65,11 @@ type Flightplan struct {
 }
 
 type REFDATA struct {
-	SENDER string `json:"sender,omitempty"`
-	RECVR  string `json:"recvr,omitempty"`
-	SEQNUM string `json:"seqnum,omitempty"`
+	SENDER FAC    `json:"SENDER,omitempty"`
+	RECVR  FAC    `json:"RECVR,omitempty"`
+	SEQNUM string `json:"SEQNUM,omitempty"`
+}
+
+type FAC struct {
+	FAC string `json:"FAC,omitempty"`
 }

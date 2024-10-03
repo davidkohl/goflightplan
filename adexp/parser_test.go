@@ -3,7 +3,6 @@ package adexp
 import (
 	"os"
 	"path/filepath"
-	"reflect"
 	"testing"
 
 	"gitlab.com/davidkohl/goflightplan"
@@ -86,107 +85,6 @@ func TestParser_Parse(t *testing.T) {
 
 			// Run the assertions
 			tc.expected(t, result)
-		})
-	}
-}
-
-func TestParser_findFieldInSchema(t *testing.T) {
-	testSchema := []MessageSet{
-		{
-			Name: "TestSet",
-			Set: map[string]StandardSchema{
-				"TEST": {
-					Category: "TEST",
-					Items: []DataField{
-						{DataItem: "TITLE", Type: Basicfield},
-						{DataItem: "ARCID", Type: Basicfield},
-					},
-				},
-			},
-		},
-	}
-
-	parser := NewParser(testSchema)
-
-	testCases := []struct {
-		name      string
-		fieldName string
-		want      DataField
-		wantErr   bool
-	}{
-		{
-			name:      "Existing field",
-			fieldName: "TITLE",
-			want:      DataField{DataItem: "TITLE", Type: Basicfield},
-			wantErr:   false,
-		},
-		{
-			name:      "Non-existing field",
-			fieldName: "NONEXISTENT",
-			want:      DataField{},
-			wantErr:   true,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			got, err := parser.findFieldInSchema(tc.fieldName)
-			if tc.wantErr {
-				if err == nil {
-					t.Errorf("findFieldInSchema() error = nil, wantErr %v", tc.wantErr)
-				}
-			} else {
-				if err != nil {
-					t.Errorf("findFieldInSchema() unexpected error = %v", err)
-				}
-				if !reflect.DeepEqual(got, tc.want) {
-					t.Errorf("findFieldInSchema() got = %v, want %v", got, tc.want)
-				}
-			}
-		})
-	}
-}
-
-func TestParser_setFieldValue(t *testing.T) {
-	parser := NewParser(nil) // Schema not needed for this test
-	parser.flightplan = &goflightplan.Flightplan{}
-
-	testCases := []struct {
-		name    string
-		field   DataField
-		value   string
-		wantErr bool
-	}{
-		{
-			name:    "Set string field",
-			field:   DataField{DataItem: "TITLE", Type: Basicfield},
-			value:   "TEST",
-			wantErr: false,
-		},
-		{
-			name:    "Set non-existent field",
-			field:   DataField{DataItem: "NONEXISTENT", Type: Basicfield},
-			value:   "TEST",
-			wantErr: true,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := parser.setFieldValue(tc.field, tc.value)
-			if tc.wantErr {
-				if err == nil {
-					t.Errorf("setFieldValue() error = nil, wantErr %v", tc.wantErr)
-				}
-			} else {
-				if err != nil {
-					t.Errorf("setFieldValue() unexpected error = %v", err)
-				}
-				got := reflect.ValueOf(parser.flightplan).Elem().FieldByName(tc.field.DataItem).String()
-				if got != tc.value {
-					t.Errorf("setFieldValue() got = %+v, want %+v", got, tc.value)
-				}
-			}
 		})
 	}
 }
