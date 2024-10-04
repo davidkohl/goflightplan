@@ -27,10 +27,11 @@ func NewParser(schema []MessageSet) *Parser {
 	}
 }
 
-func (p *Parser) Parse(message string) (*goflightplan.FlightplanWrapper, error) {
-	p.message = message
-	p.currentPos = 0
+func (p *Parser) Parse(message string) (*goflightplan.Flightplan, error) {
 
+	p.currentPos = 0
+	message = strings.ReplaceAll(message, "\n", " ")
+	p.message = message
 	for p.currentPos < len(p.message) {
 		if err := p.parseNextField(); err != nil {
 			if _, ok := err.(UnknownFieldError); ok {
@@ -39,10 +40,10 @@ func (p *Parser) Parse(message string) (*goflightplan.FlightplanWrapper, error) 
 			return nil, fmt.Errorf("error parsing field: %w", err)
 		}
 	}
-
-	p.fplwrapper.Flightplan = *p.flightplan
-	p.fplwrapper.Raw = message
-	return p.fplwrapper, nil
+	fpl := &goflightplan.Flightplan{}
+	fpl = p.flightplan
+	p.flightplan = &goflightplan.Flightplan{}
+	return fpl, nil
 }
 
 func (p *Parser) parseNextField() error {

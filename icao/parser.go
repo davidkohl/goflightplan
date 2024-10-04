@@ -46,9 +46,7 @@ func NewParser(opts ParserOpts) *ICAOParser {
 }
 
 // ParseFPLMessage parses an ICAO FPL message and returns a structured FPLMessage.
-func (p *ICAOParser) Parse(s string) (*goflightplan.FlightplanWrapper, error) {
-	fplw := &goflightplan.FlightplanWrapper{}
-
+func (p *ICAOParser) Parse(s string) (*goflightplan.Flightplan, error) {
 	var fpl *goflightplan.Flightplan = &goflightplan.Flightplan{}
 	var send, rec string
 	//if AFTNHeader is true, try to extract it
@@ -99,8 +97,7 @@ func (p *ICAOParser) Parse(s string) (*goflightplan.FlightplanWrapper, error) {
 		fpl.REFDATA.RECVR.FAC = rec
 	}
 
-	fplw.Flightplan = *fpl
-	return fplw, nil
+	return fpl, nil
 }
 
 func parseFPL(s string) (*goflightplan.Flightplan, error) {

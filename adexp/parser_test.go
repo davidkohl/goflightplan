@@ -16,54 +16,62 @@ func TestParser_Parse(t *testing.T) {
 	testCases := []struct {
 		name     string
 		filename string
-		expected func(*testing.T, *goflightplan.FlightplanWrapper)
+		expected func(*testing.T, *goflightplan.Flightplan)
 	}{
 		{
 			name:     "BFD message",
 			filename: "007_BFD.txt",
-			expected: func(t *testing.T, fp *goflightplan.FlightplanWrapper) {
-				if fp.Flightplan.TITLE != "BFD" {
-					t.Errorf("Expected TITLE to be BFD, got %s", fp.Flightplan.TITLE)
+			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
+				if fp.TITLE != "BFD" {
+					t.Errorf("Expected TITLE to be BFD, got %s", fp.TITLE)
 				}
-				if fp.Flightplan.ARCID != "WMT3GH" {
-					t.Errorf("Expected ARCID to be WMT3GH, got %s", fp.Flightplan.ARCID)
+				if fp.ARCID != "DLH151" {
+					t.Errorf("Expected ARCID to be DLH151, got %s", fp.ARCID)
 				}
 				// Add more checks based on the expected content of BFD message
-				if fp.Flightplan.ADEP != "LATI" {
-					t.Errorf("Expected ADEP to be LATI, got %s", fp.Flightplan.ADEP)
+				if fp.ADEP != "EDDW" {
+					t.Errorf("Expected ADEP to be EDDW, got %s", fp.ADEP)
 				}
-				if fp.Flightplan.ADES != "EDJA" {
-					t.Errorf("Expected ADES to be EDJA, got %s", fp.Flightplan.ADES)
+				if fp.ADES != "GMME" {
+					t.Errorf("Expected ADES to be GMME, got %s", fp.ADES)
 				}
+				if fp.REFDATA.SENDER.FAC != "EBBUZXZQ" {
+					t.Errorf("Expected SENDER to be EBBUZXZQ, got %s", fp.REFDATA.SENDER.FAC)
+				}
+				if fp.REFDATA.RECVR.FAC != "EBSZZXZQ" {
+					t.Errorf("Expected RECVR to be EBSZZXZQ, got %s", fp.REFDATA.RECVR.FAC)
+				}
+				if fp.REFDATA.SEQNUM != "006" {
+					t.Errorf("Expected SEQNUM to be 006, got %s", fp.REFDATA.SEQNUM)
+				}
+
 				// Check other fields specific to BFD message
 			},
 		},
 		{
 			name:     "CFD message",
 			filename: "008_CFD.txt",
-			expected: func(t *testing.T, fp *goflightplan.FlightplanWrapper) {
-				if fp.Flightplan.TITLE != "CFD" {
-					t.Errorf("Expected TITLE to be CFD, got %s", fp.Flightplan.TITLE)
+			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
+				if fp.TITLE != "CFD" {
+					t.Errorf("Expected TITLE to be CFD, got %s", fp.TITLE)
 				}
-				if fp.Flightplan.ARCID != "WMT3GH" {
-					t.Errorf("Expected ARCID to be 'WMT3GH', got '%s'", fp.Flightplan.ARCID)
+				if fp.ARCID != "DLH151" {
+					t.Errorf("Expected ARCID to be 'DLH151', got '%s'", fp.ARCID)
 				}
 				// Add more checks based on the expected content of CFD message
-				// For example, check for changes in flight data
 			},
 		},
 		{
 			name:     "TFD message",
 			filename: "009_TFD.txt",
-			expected: func(t *testing.T, fp *goflightplan.FlightplanWrapper) {
-				if fp.Flightplan.TITLE != "TFD" {
-					t.Errorf("Expected TITLE to be TFD, got %s", fp.Flightplan.TITLE)
+			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
+				if fp.TITLE != "TFD" {
+					t.Errorf("Expected TITLE to be TFD, got %s", fp.TITLE)
 				}
-				if fp.Flightplan.ARCID != "WZZ70BK" {
-					t.Errorf("Expected ARCID to be 'WZZ70BK', got '%s'", fp.Flightplan.ARCID)
+				if fp.ARCID != "DLH151" {
+					t.Errorf("Expected ARCID to be 'DLH151', got '%s'", fp.ARCID)
 				}
 				// Add more checks based on the expected content of TFD message
-				// For example, check for termination-related fields
 			},
 		},
 		// Add more test cases for other message types
@@ -89,28 +97,10 @@ func TestParser_Parse(t *testing.T) {
 	}
 }
 
-func loadTestCases(directory string) ([]string, error) {
-	var testCases []string
-	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() && filepath.Ext(path) == ".txt" {
-			content, err := os.ReadFile(path)
-			if err != nil {
-				return err
-			}
-			testCases = append(testCases, string(content))
-		}
-		return nil
-	})
-	return testCases, err
-}
-
-// Helper function to load the MessageSet (as defined in previous response)
+// Helper function to load the MessageSet
 func loadTestMessageSet(t *testing.T) MessageSet {
 	t.Helper()
-	messageSet, err := MessageSetFromJSON("../test/json", "TestSet")
+	messageSet, err := MessageSetFromJSON("../test/schema", "TestSet")
 	if err != nil {
 		t.Fatalf("Failed to load message set from JSON: %v", err)
 	}
