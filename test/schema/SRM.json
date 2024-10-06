@@ -68,6 +68,13 @@
         },
         {
             "FRN": 10,
+            "DataItem": "RVR",
+            "Description": "Estimated landing time",
+            "Type": 0,
+            "Mendatory": false
+        },
+        {
+            "FRN": 10,
             "DataItem": "TTO",
             "Description": "Estimated landing time",
             "Type": 2,
@@ -106,6 +113,13 @@
         {
             "FRN": 10,
             "DataItem": "TAXITIME",
+            "Description": "Estimated landing time",
+            "Type": 0,
+            "Mendatory": false
+        },
+        {
+            "FRN": 10,
+            "DataItem": "COMMENT",
             "Description": "Estimated landing time",
             "Type": 0,
             "Mendatory": false

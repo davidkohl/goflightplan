@@ -65,6 +65,13 @@
             "Description": "Estimated landing time",
             "Type": 0,
             "Mendatory": false
+        },
+        {
+            "FRN": 10,
+            "DataItem": "COMMENT",
+            "Description": "Estimated landing time",
+            "Type": 0,
+            "Mendatory": false
         }
 
     ]

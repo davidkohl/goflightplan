@@ -93,7 +93,9 @@ func Test_Parse(t *testing.T) {
 		},
 		{
 			/*
-				Test all fields according to the ATFCM USERS MANUAL v.22.1
+				Test all fields according to the ATFCM USERS MANUAL
+				Edition: MAINT-2
+				Edition date: 18-06-2024
 			*/
 			name:     "SAM message",
 			filename: "SAM.txt",
@@ -102,7 +104,7 @@ func Test_Parse(t *testing.T) {
 					t.Errorf("Expected TITLE to be TFD, got %s", fp.TITLE)
 				}
 				if fp.ARCID != "AMC101" {
-					t.Errorf("Expected ARCID to be 'DLH151', got '%s'", fp.ARCID)
+					t.Errorf("Expected ARCID to be 'AMC101', got '%s'", fp.ARCID)
 				}
 				if fp.ADEP != "EGLL" {
 					t.Errorf("Expected ADEP to be 'EGLL', got '%s'", fp.ADEP)
@@ -113,37 +115,40 @@ func Test_Parse(t *testing.T) {
 				if fp.EOBD != "160224" {
 					t.Errorf("Expected EOBD to be '160224', got '%s'", fp.EOBD)
 				}
-				if fp.EOBT != "0950" {
-					t.Errorf("Expected EOBD to be '160224', got '%s'", fp.EOBT)
+				if fp.EOBT != "0945" {
+					t.Errorf("Expected EOBD to be '0945', got '%s'", fp.EOBT)
 				}
-				if fp.CTOT != "1030" {
-					t.Errorf("Expected CTOT to be '1030', got '%s'", fp.CTOT)
+				if fp.CTOT != "1200" {
+					t.Errorf("Expected CTOT to be '1200', got '%s'", fp.CTOT)
 				}
-				if fp.REGUL != "RMZ24M" {
-					t.Errorf("Expected REGUL to be 'RMZ24M', got '%s'", fp.REGUL)
+				if fp.REGUL != "LMMLA24" {
+					t.Errorf("Expected REGUL to be 'LMMLA24', got '%s'", fp.REGUL)
 				}
-				if fp.TTO.PTID != "VEULE" {
-					t.Errorf("Expected TTO.PTID to be 'VEULE', got '%s'", fp.TTO.PTID)
+				if fp.TTO.PTID != "GZO" {
+					t.Errorf("Expected TTO.PTID to be 'GZO', got '%s'", fp.TTO.PTID)
 				}
-				if fp.TTO.TO != "1050" {
-					t.Errorf("Expected TTO.TO to be '1050', got '%s'", fp.TTO.TO)
+				if fp.TTO.TO != "1438" {
+					t.Errorf("Expected TTO.TO to be '1438', got '%s'", fp.TTO.TO)
 				}
-				if fp.TTO.FL != "F300" {
-					t.Errorf("Expected TTO.FL to be 'F300', got '%s'", fp.TTO.FL)
+				if fp.TTO.FL != "F060" {
+					t.Errorf("Expected TTO.FL to be 'F060', got '%s'", fp.TTO.FL)
 				}
-				if fp.TAXITIME != "0020" {
-					t.Errorf("Expected TAXITIME to be 'F300', got '%s'", fp.TTO.FL)
+				if fp.TAXITIME != "0010" {
+					t.Errorf("Expected TAXITIME to be '0010', got '%s'", fp.TTO.FL)
 				}
-				if fp.REGCAUSE != "CE 81" {
-					t.Errorf("Expected REGCAUSE to be 'CE 81', got '%s'", fp.REGCAUSE)
+				if fp.REGCAUSE != "WA 84" {
+					t.Errorf("Expected REGCAUSE to be 'WA 84', got '%s'", fp.REGCAUSE)
 				}
-
-				// Add more checks based on the expected content of TFD message
+				if fp.RVR != "100" {
+					t.Errorf("Expected RVR to be '100', got '%s'", fp.RVR)
+				}
 			},
 		},
 		{
 			/*
-				Test all fields according to the ATFCM USERS MANUAL v.22.1
+				Test all fields according to the ATFCM USERS MANUAL
+				Edition: MAINT-2
+				Edition date: 18-06-2024
 			*/
 			name:     "SRM message",
 			filename: "SRM.txt",
@@ -163,29 +168,29 @@ func Test_Parse(t *testing.T) {
 				if fp.EOBD != "160224" {
 					t.Errorf("Expected EOBD to be '160224', got '%s'", fp.EOBD)
 				}
-				if fp.EOBT != "0950" {
-					t.Errorf("Expected EOBD to be '160224', got '%s'", fp.EOBT)
+				if fp.EOBT != "0945" {
+					t.Errorf("Expected EOBD to be '0945', got '%s'", fp.EOBT)
 				}
-				if fp.NEWCTOT != "1005" {
-					t.Errorf("Expected CTOT to be '1030', got '%s'", fp.CTOT)
+				if fp.NEWCTOT != "1200" {
+					t.Errorf("Expected CTOT to be '1200', got '%s'", fp.CTOT)
 				}
-				if fp.REGUL != "RMZ24M" {
-					t.Errorf("Expected REGUL to be 'RMZ24M', got '%s'", fp.REGUL)
+				if fp.REGUL != "LMMLA24" {
+					t.Errorf("Expected REGUL to be 'LMMLA24', got '%s'", fp.REGUL)
 				}
-				if fp.TTO.PTID != "VEULE" {
-					t.Errorf("Expected TTO.PTID to be 'VEULE', got '%s'", fp.TTO.PTID)
+				if fp.TTO.PTID != "GZO" {
+					t.Errorf("Expected TTO.PTID to be 'GZO', got '%s'", fp.TTO.PTID)
 				}
-				if fp.TTO.TO != "1025" {
-					t.Errorf("Expected TTO.TO to be '1025', got '%s'", fp.TTO.TO)
+				if fp.TTO.TO != "1438" {
+					t.Errorf("Expected TTO.TO to be '1438', got '%s'", fp.TTO.TO)
 				}
-				if fp.TTO.FL != "F300" {
-					t.Errorf("Expected TTO.FL to be 'F300', got '%s'", fp.TTO.FL)
+				if fp.TTO.FL != "F060" {
+					t.Errorf("Expected TTO.FL to be 'F060', got '%s'", fp.TTO.FL)
 				}
-				if fp.TAXITIME != "0020" {
-					t.Errorf("Expected TAXITIME to be '0020', got '%s'", fp.TTO.FL)
+				if fp.TAXITIME != "0010" {
+					t.Errorf("Expected TAXITIME to be '0010', got '%s'", fp.TTO.FL)
 				}
-				if fp.REGCAUSE != "CE 81" {
-					t.Errorf("Expected REGCAUSE to be 'CE 81', got '%s'", fp.REGCAUSE)
+				if fp.REGCAUSE != "WA 84" {
+					t.Errorf("Expected REGCAUSE to be 'WA 84', got '%s'", fp.REGCAUSE)
 				}
 
 				// Add more checks based on the expected content of TFD message
@@ -193,7 +198,9 @@ func Test_Parse(t *testing.T) {
 		},
 		{
 			/*
-				Test all fields according to the ATFCM USERS MANUAL v.22.1
+				Test all fields according to the ATFCM USERS MANUAL
+				Edition: MAINT-2
+				Edition date: 18-06-2024
 			*/
 			name:     "SLC message",
 			filename: "SLC.txt",
@@ -216,11 +223,14 @@ func Test_Parse(t *testing.T) {
 				if fp.EOBT != "0945" {
 					t.Errorf("Expected EOBD to be '0945', got '%s'", fp.EOBT)
 				}
-				if fp.REASON != "OUTREG" {
+				if fp.REASON != "VOID" {
 					t.Errorf("Expected REASON to be 'OUTREG', got '%s'", fp.REASON)
 				}
 				if fp.TAXITIME != "0020" {
 					t.Errorf("Expected TAXITIME to be '0020', got '%s'", fp.TTO.FL)
+				}
+				if fp.COMMENT != "FLIGHT CANCELLED" {
+					t.Errorf("Expected COMMENT to be 'FLIGHT CANCELLED', got '%s'", fp.TTO.FL)
 				}
 			},
 		},
@@ -243,6 +253,63 @@ func Test_Parse(t *testing.T) {
 
 			// Run the assertions
 			tc.expected(t, result)
+		})
+	}
+}
+
+func Test_Parse_Errors(t *testing.T) {
+	// Load the test schema from JSON files
+	testSchema := []MessageSet{loadTestMessageSet(t)}
+	parser := NewParser(testSchema)
+
+	testCases := []struct {
+		name        string
+		filename    string
+		description string
+		expectError bool
+		expected    func(*testing.T, error)
+	}{
+		{
+			name:        "ADEXP NO TITLE",
+			filename:    "ADEXP_no_title.txt",
+			expectError: true,
+			expected: func(t *testing.T, err error) {
+				// Check other fields specific to BFD message
+				if err.Error() != "TITLE field not found in the message" {
+					t.Errorf("Expected to fail with message: '%s'", err.Error())
+				}
+			},
+		},
+		{
+			name:        "NO SCHEMA",
+			filename:    "ADEXP_no_schema.txt",
+			expectError: true,
+			expected: func(t *testing.T, err error) {
+				// Check other fields specific to BFD message
+				if err.Error() != "no matching schema found for title: ABC" {
+					t.Errorf("Expected to fail with message: '%s'", err.Error())
+				}
+			},
+		},
+
+		// Add more test cases for other message types
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Read the test file
+			content, err := os.ReadFile(filepath.Join("../test/fpl/adexp", tc.filename))
+			if err != nil {
+				t.Fatalf("Failed to read test file: %v", err)
+			}
+			// Parse the message
+			_, err = parser.Parse(string(content))
+			if err != nil && !tc.expectError {
+				t.Fatalf("Parse failed: %v", err)
+			}
+
+			// Run the assertions
+			tc.expected(t, err)
 		})
 	}
 }

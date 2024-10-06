@@ -16,10 +16,6 @@ func GetFlightplanFormat(s string) uint {
 	return 0
 }
 
-type CFL struct {
-	FL string `json:"fl,omitempty"`
-}
-
 type FlightplanWrapper struct {
 	Flightplan Flightplan
 	Meta       map[string]interface{}
@@ -55,12 +51,13 @@ type Flightplan struct {
 	ATD     string  `json:"atd,omitempty"`
 	ATOT    string  `json:"atot,omitempty"`
 
-	IFPLID string `json:"ifplid,omitempty"`
-	SID    string `json:"sid,omitempty"`
-	STAR   string `json:"star,omitempty"`
-	REG    string `json:"reg,omitempty"`
-	DOF    string `json:"dof,omitempty"`
-	RMK    string `json:"rmk,omitempty"`
+	IFPLID  string `json:"ifplid,omitempty"`
+	SID     string `json:"sid,omitempty"`
+	STAR    string `json:"star,omitempty"`
+	REG     string `json:"reg,omitempty"`
+	DOF     string `json:"dof,omitempty"`
+	RMK     string `json:"rmk,omitempty"`
+	COMMENT string `json:"string,omitempty"`
 
 	// Slot Related Fields
 	REGUL    string  `json:"regul,omitempty"`
@@ -70,6 +67,7 @@ type Flightplan struct {
 	TAXITIME string  `json:"taxitime,omitempty"`
 	TTO      CORDATA `json:"TTO,omitempty"`
 	REASON   string  `json:"reason,omitempty"`
+	RVR      string  `json:"rvr,omitempty"`
 }
 
 type REFDATA struct {
@@ -86,4 +84,8 @@ type CORDATA struct {
 	PTID string `json:"ptid,omitempty"`
 	TO   string `json:"to,omitempty"`
 	FL   string `json:"fl,omitempty"`
+}
+
+type CFL struct {
+	FL string `json:"fl,omitempty"`
 }
