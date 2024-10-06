@@ -54,14 +54,22 @@ type Flightplan struct {
 	ALDT    string  `json:"aldt,omitempty"`
 	ATD     string  `json:"atd,omitempty"`
 	ATOT    string  `json:"atot,omitempty"`
-	CTOT    string  `json:"ctot,omitempty"`
-	NEWCTOT string  `json:"newctot,omitempty"`
-	IFPLID  string  `json:"ifplid,omitempty"`
-	SID     string  `json:"sid,omitempty"`
-	STAR    string  `json:"star,omitempty"`
-	REG     string  `json:"reg,omitempty"`
-	DOF     string  `json:"dof,omitempty"`
-	RMK     string  `json:"rmk,omitempty"`
+
+	IFPLID string `json:"ifplid,omitempty"`
+	SID    string `json:"sid,omitempty"`
+	STAR   string `json:"star,omitempty"`
+	REG    string `json:"reg,omitempty"`
+	DOF    string `json:"dof,omitempty"`
+	RMK    string `json:"rmk,omitempty"`
+
+	// Slot Related Fields
+	REGUL    string  `json:"regul,omitempty"`
+	CTOT     string  `json:"ctot,omitempty"`
+	NEWCTOT  string  `json:"newctot,omitempty"`
+	REGCAUSE string  `json:"regcause,omitempty"`
+	TAXITIME string  `json:"taxitime,omitempty"`
+	TTO      CORDATA `json:"TTO,omitempty"`
+	REASON   string  `json:"reason,omitempty"`
 }
 
 type REFDATA struct {
@@ -72,4 +80,10 @@ type REFDATA struct {
 
 type FAC struct {
 	FAC string `json:"FAC,omitempty"`
+}
+
+type CORDATA struct {
+	PTID string `json:"ptid,omitempty"`
+	TO   string `json:"to,omitempty"`
+	FL   string `json:"fl,omitempty"`
 }

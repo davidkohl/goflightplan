@@ -1,0 +1,115 @@
+{
+    "Name": "custom",
+    "Category": "SAM",
+    "Version": "0.1",
+    "Items": [
+        {
+            "FRN": 1,
+            "DataItem": "TITLE",
+            "Description": "Title of the ADEXP Message",
+            "Type": 0,
+            "Mendatory": true
+        },
+        {
+            "FRN": 2,
+            "DataItem": "ARCID",
+            "Description": "Aircraft id or callsign",
+            "Type": 0,
+            "Mendatory": true
+        },
+        {
+            "FRN": 8,
+            "DataItem": "IFPLID",
+            "Description": "Individual flight plan id",
+            "Type": 0,
+            "Mendatory": false
+        },
+        {
+            "FRN": 5,
+            "DataItem": "ADEP",
+            "Description": "Aerodrom of departure",
+            "Type": 0,
+            "Mendatory": false
+        },
+        {
+            "FRN": 6,
+            "DataItem": "ADES",
+            "Description": "Aerodrom of destination",
+            "Type": 0,
+            "Mendatory": false
+        },
+        {
+            "FRN": 12,
+            "DataItem": "EOBD",
+            "Description": "Day of Flight",
+            "Type": 0,
+            "Mendatory": false
+        },
+        {
+            "FRN": 9,
+            "DataItem": "EOBT",
+            "Description": "Estimated off block time",
+            "Type": 0,
+            "Mendatory": false
+        },
+        {
+            "FRN": 10,
+            "DataItem": "CTOT",
+            "Description": "Estimated landing time",
+            "Type": 0,
+            "Mendatory": false
+        },
+        {
+            "FRN": 10,
+            "DataItem": "REGUL",
+            "Description": "Estimated landing time",
+            "Type": 0,
+            "Mendatory": false
+        },
+        {
+            "FRN": 10,
+            "DataItem": "TTO",
+            "Description": "Estimated landing time",
+            "Type": 2,
+            "Mendatory": false,
+            "Subfields": [
+                {
+                    "FRN": 10,
+                    "DataItem": "PTID",
+                    "Description": "Estimated landing time",
+                    "Type": 0,
+                    "Mendatory": false
+                },
+                {
+                    "FRN": 10,
+                    "DataItem": "TO",
+                    "Description": "Estimated landing time",
+                    "Type": 0,
+                    "Mendatory": false
+                },
+                {
+                    "FRN": 10,
+                    "DataItem": "FL",
+                    "Description": "Estimated landing time",
+                    "Type": 0,
+                    "Mendatory": false
+                }
+            ]
+        },
+        {
+            "FRN": 10,
+            "DataItem": "REGCAUSE",
+            "Description": "Estimated landing time",
+            "Type": 0,
+            "Mendatory": false
+        },
+        {
+            "FRN": 10,
+            "DataItem": "TAXITIME",
+            "Description": "Estimated landing time",
+            "Type": 0,
+            "Mendatory": false
+        }
+
+    ]
+}

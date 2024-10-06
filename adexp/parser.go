@@ -7,21 +7,22 @@ import (
 	"reflect"
 	"strings"
 
-	"gitlab.com/davidkohl/goflightplan"
+	"github.com/davidkohl/goflightplan"
 )
 
 type Parser struct {
-	schema     []MessageSet
-	buffer     bytes.Buffer
-	currentPos int
-	message    string
-	flightplan *goflightplan.Flightplan
-	fplwrapper *goflightplan.FlightplanWrapper
+	MessageSet    []MessageSet
+	buffer        bytes.Buffer
+	currentPos    int
+	message       string
+	flightplan    *goflightplan.Flightplan
+	fplwrapper    *goflightplan.FlightplanWrapper
+	currentSchema *StandardSchema // New field to store the matched schema
 }
 
 func NewParser(schema []MessageSet) *Parser {
 	return &Parser{
-		schema:     schema,
+		MessageSet: schema,
 		flightplan: &goflightplan.Flightplan{},
 		fplwrapper: goflightplan.NewFlightplanWrapper(),
 	}
@@ -32,6 +33,27 @@ func (p *Parser) Parse(message string) (*goflightplan.Flightplan, error) {
 	p.currentPos = 0
 	message = strings.ReplaceAll(message, "\n", " ")
 	p.message = message
+
+	titleStart := strings.Index(message, "-TITLE ")
+	if titleStart == -1 {
+		return nil, fmt.Errorf("TITLE field not found in the message")
+	}
+	titleStart += 7 // Length of "-TITLE "
+	titleEnd := strings.Index(message[titleStart:], "-")
+	if titleEnd == -1 {
+		titleEnd = len(message)
+	} else {
+		titleEnd += titleStart
+	}
+	title := strings.TrimSpace(message[titleStart:titleEnd])
+
+	// Find the matching schema
+	matchedSchema, err := p.findMatchingSchema(title)
+	if err != nil {
+		return nil, err
+	}
+	p.currentSchema = matchedSchema
+
 	for p.currentPos < len(p.message) {
 		if err := p.parseNextField(); err != nil {
 			if _, ok := err.(UnknownFieldError); ok {
@@ -94,114 +116,24 @@ func (e UnknownFieldError) Error() string {
 	return fmt.Sprintf("unknown field: %s", e.FieldName)
 }
 
-func (p *Parser) parseBasicField(field DataField) error {
-	p.buffer.Reset()
-	p.currentPos++ // Skip the space after field name
-	for p.currentPos < len(p.message) && p.message[p.currentPos] != '-' {
-		p.buffer.WriteByte(p.message[p.currentPos])
-		p.currentPos++
-	}
-
-	value := strings.TrimSpace(p.buffer.String())
-	return p.setFieldValue(field, value)
-}
-
-func (p *Parser) parseStructuredField(field DataField) error {
-
-	structuredData := make(map[string]interface{})
-	for p.currentPos < len(p.message) {
-		subFieldName, subFieldValue, err := p.parseSubField(field.Subfields)
-		if err != nil {
-			return err
-		}
-		if subFieldName == "" {
-			break
-		}
-		structuredData[subFieldName] = subFieldValue
-	}
-
-	return p.setFieldValue(field, structuredData)
-}
-
-func (p *Parser) parseSubField(subfields []DataField) (string, interface{}, error) {
-	p.buffer.Reset()
-	for p.currentPos < len(p.message) && p.message[p.currentPos] == ' ' {
-		p.currentPos++
-	}
-	if p.currentPos >= len(p.message) || p.message[p.currentPos] != '-' {
-		return "", nil, nil // End of structured field
-	}
-	p.currentPos++ // Skip the '-'
-
-	for p.currentPos < len(p.message) && p.message[p.currentPos] != ' ' {
-		p.buffer.WriteByte(p.message[p.currentPos])
-		p.currentPos++
-	}
-	subFieldName := p.buffer.String()
-
-	p.currentPos++ // Skip the space after the field name
-	p.buffer.Reset()
-
-	// Find the subfield definition
-	var subFieldDef *DataField
-	for i := range subfields {
-		if subfields[i].DataItem == subFieldName {
-			subFieldDef = &subfields[i]
-			break
-		}
-	}
-
-	if subFieldDef == nil {
-		// This might be a new top-level field, so we need to backtrack
-		p.currentPos -= len(subFieldName) + 2 // +2 for '-' and space
-		return "", nil, nil
-	}
-
-	// Handle nested structures
-	if subFieldDef.Type == StructuredField {
-		nestedData, err := p.parseNestedStructure(subFieldDef.Subfields)
-		if err != nil {
-			return "", nil, err
-		}
-		return subFieldName, nestedData, nil
-	}
-
-	// Parse simple value
-	for p.currentPos < len(p.message) && p.message[p.currentPos] != '-' {
-		p.buffer.WriteByte(p.message[p.currentPos])
-		p.currentPos++
-	}
-	subFieldValue := strings.TrimSpace(p.buffer.String())
-
-	return subFieldName, subFieldValue, nil
-}
-
-func (p *Parser) parseNestedStructure(subfields []DataField) (map[string]interface{}, error) {
-	nestedData := make(map[string]interface{})
-	for {
-		subFieldName, subFieldValue, err := p.parseSubField(subfields)
-		if err != nil {
-			return nil, err
-		}
-		if subFieldName == "" {
-			break
-		}
-		nestedData[subFieldName] = subFieldValue
-	}
-	return nestedData, nil
-}
-
 func (p *Parser) findFieldInSchema(fieldName string) (DataField, []DataField, error) {
-	for _, messageSet := range p.schema {
-		for _, schema := range messageSet.Set {
-			for _, item := range schema.Items {
-				if item.DataItem == fieldName {
-					return item, item.Subfields, nil
-				}
-			}
+	for _, item := range p.currentSchema.Items {
+		if item.DataItem == fieldName {
+			return item, item.Subfields, nil
 		}
 	}
 	return DataField{}, nil, fmt.Errorf("field '%s' not found in schema", fieldName)
+}
+
+func (p *Parser) findMatchingSchema(title string) (*StandardSchema, error) {
+	for _, messageSet := range p.MessageSet {
+		for _, schema := range messageSet.Set {
+			if schema.Category == title {
+				return &schema, nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("no matching schema found for title: %s", title)
 }
 
 func (p *Parser) setFieldValue(field DataField, value interface{}) error {

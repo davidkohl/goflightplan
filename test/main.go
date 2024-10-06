@@ -7,9 +7,9 @@ import (
 	"log/slog"
 	"os"
 
-	"gitlab.com/davidkohl/goflightplan"
-	"gitlab.com/davidkohl/goflightplan/adexp"
-	"gitlab.com/davidkohl/goflightplan/icao"
+	"github.com/davidkohl/goflightplan"
+	"github.com/davidkohl/goflightplan/adexp"
+	"github.com/davidkohl/goflightplan/icao"
 )
 
 func main() {
@@ -74,7 +74,7 @@ func main() {
 
 			}
 
-			if a == nil {
+			if a != nil {
 				Logger.Warn("NO PArser could handle the fpl message")
 				continue
 			}

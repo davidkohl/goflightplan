@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	"gitlab.com/davidkohl/goflightplan"
+	"github.com/davidkohl/goflightplan"
 )
 
 type ParseHandler struct {
