@@ -68,6 +68,7 @@ type Flightplan struct {
 	TTO      CORDATA `json:"TTO,omitempty"`
 	REASON   string  `json:"reason,omitempty"`
 	RVR      string  `json:"rvr,omitempty"`
+	RESPBY   string  `json:"respby,omitempty"`
 }
 
 type REFDATA struct {

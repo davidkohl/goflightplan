@@ -234,6 +234,82 @@ func Test_Parse(t *testing.T) {
 				}
 			},
 		},
+		{
+			/*
+				Test all fields according to the ATFCM USERS MANUAL
+				Edition: MAINT-2
+				Edition date: 18-06-2024
+			*/
+			name:     "FLS message",
+			filename: "FLS.txt",
+			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
+				if fp.TITLE != "FLS" {
+					t.Errorf("Expected TITLE to be FLS, got %s", fp.TITLE)
+				}
+				if fp.ARCID != "AMC101" {
+					t.Errorf("Expected ARCID to be 'AMC101', got '%s'", fp.ARCID)
+				}
+				if fp.ADEP != "EGLL" {
+					t.Errorf("Expected ADEP to be 'EGLL', got '%s'", fp.ADEP)
+				}
+				if fp.ADES != "LMML" {
+					t.Errorf("Expected ADES to be 'LMML', got '%s'", fp.ADES)
+				}
+				if fp.EOBD != "080901" {
+					t.Errorf("Expected EOBD to be '080901', got '%s'", fp.EOBD)
+				}
+				if fp.EOBT != "0945" {
+					t.Errorf("Expected EOBD to be '0945', got '%s'", fp.EOBT)
+				}
+				if fp.TAXITIME != "0020" {
+					t.Errorf("Expected TAXITIME to be '0020', got '%s'", fp.TAXITIME)
+				}
+				if fp.COMMENT != "RVR UNKNOWN" {
+					t.Errorf("Expected COMMENT to be 'FLIGHT CANCELLED', got '%s'", fp.COMMENT)
+				}
+				if fp.REGCAUSE != "WA 84" {
+					t.Errorf("Expected REGUL to be 'WA 84', got '%s'", fp.REGCAUSE)
+				}
+				if fp.REGUL != "UZZU11" {
+					t.Errorf("Expected REGUL to be 'WA 84', got '%s'", fp.REGUL)
+				}
+			},
+		},
+		{
+			/*
+				Test all fields according to the ATFCM USERS MANUAL
+				Edition: MAINT-2
+				Edition date: 18-06-2024
+			*/
+			name:     "DES message",
+			filename: "DES.txt",
+			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
+				if fp.TITLE != "DES" {
+					t.Errorf("Expected TITLE to be DES, got %s", fp.TITLE)
+				}
+				if fp.ARCID != "AMC101" {
+					t.Errorf("Expected ARCID to be 'AMC101', got '%s'", fp.ARCID)
+				}
+				if fp.ADEP != "EGLL" {
+					t.Errorf("Expected ADEP to be 'EGLL', got '%s'", fp.ADEP)
+				}
+				if fp.ADES != "LMML" {
+					t.Errorf("Expected ADES to be 'LMML', got '%s'", fp.ADES)
+				}
+				if fp.EOBD != "080901" {
+					t.Errorf("Expected EOBD to be '080901', got '%s'", fp.EOBD)
+				}
+				if fp.EOBT != "0945" {
+					t.Errorf("Expected EOBD to be '0945', got '%s'", fp.EOBT)
+				}
+				if fp.TAXITIME != "0020" {
+					t.Errorf("Expected TAXITIME to be '0020', got '%s'", fp.TAXITIME)
+				}
+				if fp.COMMENT != "NEW ATFM MESSAGES MAY POSSIBLY BE PUBLISHED AT 2 HOURS BEFORE THE EOBT" {
+					t.Errorf("Expected COMMENT to be 'NEW ATFM MESSAGES MAY POSSIBLY BE PUBLISHED AT 2 HOURS BEFORE THE EOBT', got '%s'", fp.COMMENT)
+				}
+			},
+		},
 
 		// Add more test cases for other message types
 	}
