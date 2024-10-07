@@ -1,6 +1,7 @@
 package adexp
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -20,7 +21,7 @@ func Test_Parse(t *testing.T) {
 		expected    func(*testing.T, *goflightplan.Flightplan)
 	}{{
 		name:     "BFD message short",
-		filename: "007_BFD_short.txt",
+		filename: "BFD_short.txt",
 		description: `
 		This test verifies that fields that are not present in the schema are not parsed
 		`,
@@ -34,7 +35,7 @@ func Test_Parse(t *testing.T) {
 	},
 		{
 			name:     "BFD message",
-			filename: "007_BFD.txt",
+			filename: "BFD.txt",
 			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
 				if fp.TITLE != "BFD" {
 					t.Errorf("Expected TITLE to be BFD, got %s", fp.TITLE)
@@ -67,7 +68,7 @@ func Test_Parse(t *testing.T) {
 		},
 		{
 			name:     "CFD message",
-			filename: "008_CFD.txt",
+			filename: "CFD.txt",
 			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
 				if fp.TITLE != "CFD" {
 					t.Errorf("Expected TITLE to be CFD, got %s", fp.TITLE)
@@ -80,7 +81,7 @@ func Test_Parse(t *testing.T) {
 		},
 		{
 			name:     "TFD message",
-			filename: "009_TFD.txt",
+			filename: "TFD.txt",
 			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
 				if fp.TITLE != "TFD" {
 					t.Errorf("Expected TITLE to be TFD, got %s", fp.TITLE)
@@ -367,6 +368,31 @@ func Test_Parse_Errors(t *testing.T) {
 				}
 			},
 		},
+		{
+			name:        "EMPTY MSG",
+			filename:    "ADEXP_empty.txt",
+			expectError: true,
+			expected: func(t *testing.T, err error) {
+				// Check other fields specific to BFD message
+				if err.Error() != "TITLE field not found in the message" {
+					t.Errorf("Expected to fail with message: '%s'", err.Error())
+				}
+			},
+		},
+		{
+			name:        "INVALID CHAR",
+			filename:    "ADEXP_invalid_char.txt",
+			expectError: true,
+			expected: func(t *testing.T, err error) {
+				// Check other fields specific to BFD message
+				if err == nil {
+					return
+				}
+				if err.Error() != "no matching schema found for title: ABC" {
+					t.Errorf("Expected to fail with message: '%s'", err.Error())
+				}
+			},
+		},
 
 		// Add more test cases for other message types
 	}
@@ -379,10 +405,11 @@ func Test_Parse_Errors(t *testing.T) {
 				t.Fatalf("Failed to read test file: %v", err)
 			}
 			// Parse the message
-			_, err = parser.Parse(string(content))
+			fp, err := parser.Parse(string(content))
 			if err != nil && !tc.expectError {
 				t.Fatalf("Parse failed: %v", err)
 			}
+			fmt.Println(fp)
 
 			// Run the assertions
 			tc.expected(t, err)
