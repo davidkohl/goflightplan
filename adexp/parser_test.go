@@ -5,8 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/davidkohl/goflightplan"
 )
 
 func Test_Parse(t *testing.T) {
@@ -18,301 +16,287 @@ func Test_Parse(t *testing.T) {
 		name        string
 		filename    string
 		description string
-		expected    func(*testing.T, *goflightplan.Flightplan)
-	}{{
-		name:     "BFD message short",
-		filename: "BFD_short.txt",
-		description: `
-		This test verifies that fields that are not present in the schema are not parsed
-		`,
-		expected: func(t *testing.T, fp *goflightplan.Flightplan) {
-			if fp.WKTRC != "" {
-				t.Errorf("Expected WKTRC to be empty, got value %s", fp.WKTRC)
-			}
-
-			// Check other fields specific to BFD message
+		expected    func(*testing.T, map[string]interface{})
+	}{
+		{
+			name:     "BFD message short",
+			filename: "BFD_short.txt",
+			description: `
+            This test verifies that fields that are not present in the schema are not parsed
+            `,
+			expected: func(t *testing.T, fp map[string]interface{}) {
+				if _, exists := fp["WKTRC"]; exists {
+					t.Errorf("Expected WKTRC to not be present, but it was")
+				}
+			},
 		},
-	},
 		{
 			name:     "BFD message",
 			filename: "BFD.txt",
-			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
-				if fp.TITLE != "BFD" {
-					t.Errorf("Expected TITLE to be BFD, got %s", fp.TITLE)
+			expected: func(t *testing.T, fp map[string]interface{}) {
+				if fp["TITLE"] != "BFD" {
+					t.Errorf("Expected TITLE to be BFD, got %v", fp["TITLE"])
 				}
-				if fp.ARCID != "DLH151" {
-					t.Errorf("Expected ARCID to be DLH151, got %s", fp.ARCID)
+				if fp["ARCID"] != "DLH151" {
+					t.Errorf("Expected ARCID to be DLH151, got %v", fp["ARCID"])
 				}
-				// Add more checks based on the expected content of BFD message
-				if fp.ADEP != "EDDW" {
-					t.Errorf("Expected ADEP to be EDDW, got %s", fp.ADEP)
+				if fp["ADEP"] != "EDDW" {
+					t.Errorf("Expected ADEP to be EDDW, got %v", fp["ADEP"])
 				}
-				if fp.ADES != "GMME" {
-					t.Errorf("Expected ADES to be GMME, got %s", fp.ADES)
+				if fp["ADES"] != "GMME" {
+					t.Errorf("Expected ADES to be GMME, got %v", fp["ADES"])
 				}
-				if fp.REFDATA.SENDER.FAC != "EBBUZXZQ" {
-					t.Errorf("Expected SENDER to be EBBUZXZQ, got %s", fp.REFDATA.SENDER.FAC)
+				refdata, ok := fp["REFDATA"].(map[string]interface{})
+				if !ok {
+					t.Errorf("Expected REFDATA to be a map[string]interface{}")
+				} else {
+					sender, ok := refdata["SENDER"].(map[string]interface{})
+					if !ok {
+						t.Errorf("Expected SENDER to be a map[string]interface{}")
+					} else if sender["FAC"] != "EBBUZXZQ" {
+						t.Errorf("Expected SENDER.FAC to be EBBUZXZQ, got %v", sender["FAC"])
+					}
+					recvr, ok := refdata["RECVR"].(map[string]interface{})
+					if !ok {
+						t.Errorf("Expected RECVR to be a map[string]interface{}")
+					} else if recvr["FAC"] != "EBSZZXZQ" {
+						t.Errorf("Expected RECVR.FAC to be EBSZZXZQ, got %v", recvr["FAC"])
+					}
+					if refdata["SEQNUM"] != "006" {
+						t.Errorf("Expected SEQNUM to be 006, got %v", refdata["SEQNUM"])
+					}
 				}
-				if fp.REFDATA.RECVR.FAC != "EBSZZXZQ" {
-					t.Errorf("Expected RECVR to be EBSZZXZQ, got %s", fp.REFDATA.RECVR.FAC)
+				if fp["WKTRC"] != "M" {
+					t.Errorf("Expected WKTRC to be 'M', got %v", fp["WKTRC"])
 				}
-				if fp.REFDATA.SEQNUM != "006" {
-					t.Errorf("Expected SEQNUM to be 006, got %s", fp.REFDATA.SEQNUM)
-				}
-				if fp.WKTRC != "M" {
-					t.Errorf("Expected WKTRC to be 'M', got %s", fp.WKTRC)
-				}
-
-				// Check other fields specific to BFD message
 			},
 		},
 		{
 			name:     "CFD message",
 			filename: "CFD.txt",
-			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
-				if fp.TITLE != "CFD" {
-					t.Errorf("Expected TITLE to be CFD, got %s", fp.TITLE)
+			expected: func(t *testing.T, fp map[string]interface{}) {
+				if fp["TITLE"] != "CFD" {
+					t.Errorf("Expected TITLE to be CFD, got %v", fp["TITLE"])
 				}
-				if fp.ARCID != "DLH151" {
-					t.Errorf("Expected ARCID to be 'DLH151', got '%s'", fp.ARCID)
+				if fp["ARCID"] != "DLH151" {
+					t.Errorf("Expected ARCID to be 'DLH151', got '%v'", fp["ARCID"])
 				}
-				// Add more checks based on the expected content of CFD message
 			},
 		},
 		{
 			name:     "TFD message",
 			filename: "TFD.txt",
-			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
-				if fp.TITLE != "TFD" {
-					t.Errorf("Expected TITLE to be TFD, got %s", fp.TITLE)
+			expected: func(t *testing.T, fp map[string]interface{}) {
+				if fp["TITLE"] != "TFD" {
+					t.Errorf("Expected TITLE to be TFD, got %v", fp["TITLE"])
 				}
-				if fp.ARCID != "DLH151" {
-					t.Errorf("Expected ARCID to be 'DLH151', got '%s'", fp.ARCID)
+				if fp["ARCID"] != "DLH151" {
+					t.Errorf("Expected ARCID to be 'DLH151', got '%v'", fp["ARCID"])
 				}
-				// Add more checks based on the expected content of TFD message
 			},
 		},
 		{
-			/*
-				Test all fields according to the ATFCM USERS MANUAL
-				Edition: MAINT-2
-				Edition date: 18-06-2024
-			*/
 			name:     "SAM message",
 			filename: "SAM.txt",
-			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
-				if fp.TITLE != "SAM" {
-					t.Errorf("Expected TITLE to be TFD, got %s", fp.TITLE)
+			expected: func(t *testing.T, fp map[string]interface{}) {
+				if fp["TITLE"] != "SAM" {
+					t.Errorf("Expected TITLE to be SAM, got %v", fp["TITLE"])
 				}
-				if fp.ARCID != "AMC101" {
-					t.Errorf("Expected ARCID to be 'AMC101', got '%s'", fp.ARCID)
+				if fp["ARCID"] != "AMC101" {
+					t.Errorf("Expected ARCID to be 'AMC101', got '%v'", fp["ARCID"])
 				}
-				if fp.ADEP != "EGLL" {
-					t.Errorf("Expected ADEP to be 'EGLL', got '%s'", fp.ADEP)
+				if fp["ADEP"] != "EGLL" {
+					t.Errorf("Expected ADEP to be 'EGLL', got '%v'", fp["ADEP"])
 				}
-				if fp.ADES != "LMML" {
-					t.Errorf("Expected ADES to be 'LMML', got '%s'", fp.ADES)
+				if fp["ADES"] != "LMML" {
+					t.Errorf("Expected ADES to be 'LMML', got '%v'", fp["ADES"])
 				}
-				if fp.EOBD != "160224" {
-					t.Errorf("Expected EOBD to be '160224', got '%s'", fp.EOBD)
+				if fp["EOBD"] != "160224" {
+					t.Errorf("Expected EOBD to be '160224', got '%v'", fp["EOBD"])
 				}
-				if fp.EOBT != "0945" {
-					t.Errorf("Expected EOBD to be '0945', got '%s'", fp.EOBT)
+				if fp["EOBT"] != "0945" {
+					t.Errorf("Expected EOBT to be '0945', got '%v'", fp["EOBT"])
 				}
-				if fp.CTOT != "1200" {
-					t.Errorf("Expected CTOT to be '1200', got '%s'", fp.CTOT)
+				if fp["CTOT"] != "1200" {
+					t.Errorf("Expected CTOT to be '1200', got '%v'", fp["CTOT"])
 				}
-				if fp.REGUL != "LMMLA24" {
-					t.Errorf("Expected REGUL to be 'LMMLA24', got '%s'", fp.REGUL)
+				if fp["REGUL"] != "LMMLA24" {
+					t.Errorf("Expected REGUL to be 'LMMLA24', got '%v'", fp["REGUL"])
 				}
-				if fp.TTO.PTID != "GZO" {
-					t.Errorf("Expected TTO.PTID to be 'GZO', got '%s'", fp.TTO.PTID)
+				tto, ok := fp["TTO"].(map[string]interface{})
+				if !ok {
+					t.Errorf("Expected TTO to be a map[string]interface{}")
+				} else {
+					if tto["PTID"] != "GZO" {
+						t.Errorf("Expected TTO.PTID to be 'GZO', got '%v'", tto["PTID"])
+					}
+					if tto["TO"] != "1438" {
+						t.Errorf("Expected TTO.TO to be '1438', got '%v'", tto["TO"])
+					}
+					if tto["FL"] != "F060" {
+						t.Errorf("Expected TTO.FL to be 'F060', got '%v'", tto["FL"])
+					}
 				}
-				if fp.TTO.TO != "1438" {
-					t.Errorf("Expected TTO.TO to be '1438', got '%s'", fp.TTO.TO)
+				if fp["TAXITIME"] != "0010" {
+					t.Errorf("Expected TAXITIME to be '0010', got '%v'", fp["TAXITIME"])
 				}
-				if fp.TTO.FL != "F060" {
-					t.Errorf("Expected TTO.FL to be 'F060', got '%s'", fp.TTO.FL)
+				if fp["REGCAUSE"] != "WA 84" {
+					t.Errorf("Expected REGCAUSE to be 'WA 84', got '%v'", fp["REGCAUSE"])
 				}
-				if fp.TAXITIME != "0010" {
-					t.Errorf("Expected TAXITIME to be '0010', got '%s'", fp.TTO.FL)
-				}
-				if fp.REGCAUSE != "WA 84" {
-					t.Errorf("Expected REGCAUSE to be 'WA 84', got '%s'", fp.REGCAUSE)
-				}
-				if fp.RVR != "100" {
-					t.Errorf("Expected RVR to be '100', got '%s'", fp.RVR)
+				if fp["RVR"] != "100" {
+					t.Errorf("Expected RVR to be '100', got '%v'", fp["RVR"])
 				}
 			},
 		},
 		{
-			/*
-				Test all fields according to the ATFCM USERS MANUAL
-				Edition: MAINT-2
-				Edition date: 18-06-2024
-			*/
 			name:     "SRM message",
 			filename: "SRM.txt",
-			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
-				if fp.TITLE != "SRM" {
-					t.Errorf("Expected TITLE to be TFD, got %s", fp.TITLE)
+			expected: func(t *testing.T, fp map[string]interface{}) {
+				if fp["TITLE"] != "SRM" {
+					t.Errorf("Expected TITLE to be SRM, got %v", fp["TITLE"])
 				}
-				if fp.ARCID != "AMC101" {
-					t.Errorf("Expected ARCID to be 'DLH151', got '%s'", fp.ARCID)
+				if fp["ARCID"] != "AMC101" {
+					t.Errorf("Expected ARCID to be 'AMC101', got '%v'", fp["ARCID"])
 				}
-				if fp.ADEP != "EGLL" {
-					t.Errorf("Expected ADEP to be 'EGLL', got '%s'", fp.ADEP)
+				if fp["ADEP"] != "EGLL" {
+					t.Errorf("Expected ADEP to be 'EGLL', got '%v'", fp["ADEP"])
 				}
-				if fp.ADES != "LMML" {
-					t.Errorf("Expected ADES to be 'LMML', got '%s'", fp.ADES)
+				if fp["ADES"] != "LMML" {
+					t.Errorf("Expected ADES to be 'LMML', got '%v'", fp["ADES"])
 				}
-				if fp.EOBD != "160224" {
-					t.Errorf("Expected EOBD to be '160224', got '%s'", fp.EOBD)
+				if fp["EOBD"] != "160224" {
+					t.Errorf("Expected EOBD to be '160224', got '%v'", fp["EOBD"])
 				}
-				if fp.EOBT != "0945" {
-					t.Errorf("Expected EOBD to be '0945', got '%s'", fp.EOBT)
+				if fp["EOBT"] != "0945" {
+					t.Errorf("Expected EOBT to be '0945', got '%v'", fp["EOBT"])
 				}
-				if fp.NEWCTOT != "1200" {
-					t.Errorf("Expected CTOT to be '1200', got '%s'", fp.CTOT)
+				if fp["NEWCTOT"] != "1200" {
+					t.Errorf("Expected NEWCTOT to be '1200', got '%v'", fp["NEWCTOT"])
 				}
-				if fp.REGUL != "LMMLA24" {
-					t.Errorf("Expected REGUL to be 'LMMLA24', got '%s'", fp.REGUL)
+				if fp["REGUL"] != "LMMLA24" {
+					t.Errorf("Expected REGUL to be 'LMMLA24', got '%v'", fp["REGUL"])
 				}
-				if fp.TTO.PTID != "GZO" {
-					t.Errorf("Expected TTO.PTID to be 'GZO', got '%s'", fp.TTO.PTID)
+				tto, ok := fp["TTO"].(map[string]interface{})
+				if !ok {
+					t.Errorf("Expected TTO to be a map[string]interface{}")
+				} else {
+					if tto["PTID"] != "GZO" {
+						t.Errorf("Expected TTO.PTID to be 'GZO', got '%v'", tto["PTID"])
+					}
+					if tto["TO"] != "1438" {
+						t.Errorf("Expected TTO.TO to be '1438', got '%v'", tto["TO"])
+					}
+					if tto["FL"] != "F060" {
+						t.Errorf("Expected TTO.FL to be 'F060', got '%v'", tto["FL"])
+					}
 				}
-				if fp.TTO.TO != "1438" {
-					t.Errorf("Expected TTO.TO to be '1438', got '%s'", fp.TTO.TO)
+				if fp["TAXITIME"] != "0010" {
+					t.Errorf("Expected TAXITIME to be '0010', got '%v'", fp["TAXITIME"])
 				}
-				if fp.TTO.FL != "F060" {
-					t.Errorf("Expected TTO.FL to be 'F060', got '%s'", fp.TTO.FL)
+				if fp["REGCAUSE"] != "WA 84" {
+					t.Errorf("Expected REGCAUSE to be 'WA 84', got '%v'", fp["REGCAUSE"])
 				}
-				if fp.TAXITIME != "0010" {
-					t.Errorf("Expected TAXITIME to be '0010', got '%s'", fp.TTO.FL)
-				}
-				if fp.REGCAUSE != "WA 84" {
-					t.Errorf("Expected REGCAUSE to be 'WA 84', got '%s'", fp.REGCAUSE)
-				}
-
-				// Add more checks based on the expected content of TFD message
 			},
 		},
 		{
-			/*
-				Test all fields according to the ATFCM USERS MANUAL
-				Edition: MAINT-2
-				Edition date: 18-06-2024
-			*/
 			name:     "SLC message",
 			filename: "SLC.txt",
-			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
-				if fp.TITLE != "SLC" {
-					t.Errorf("Expected TITLE to be TFD, got %s", fp.TITLE)
+			expected: func(t *testing.T, fp map[string]interface{}) {
+				if fp["TITLE"] != "SLC" {
+					t.Errorf("Expected TITLE to be SLC, got %v", fp["TITLE"])
 				}
-				if fp.ARCID != "AMC101" {
-					t.Errorf("Expected ARCID to be 'DLH151', got '%s'", fp.ARCID)
+				if fp["ARCID"] != "AMC101" {
+					t.Errorf("Expected ARCID to be 'AMC101', got '%v'", fp["ARCID"])
 				}
-				if fp.ADEP != "EGLL" {
-					t.Errorf("Expected ADEP to be 'EGLL', got '%s'", fp.ADEP)
+				if fp["ADEP"] != "EGLL" {
+					t.Errorf("Expected ADEP to be 'EGLL', got '%v'", fp["ADEP"])
 				}
-				if fp.ADES != "LMML" {
-					t.Errorf("Expected ADES to be 'LMML', got '%s'", fp.ADES)
+				if fp["ADES"] != "LMML" {
+					t.Errorf("Expected ADES to be 'LMML', got '%v'", fp["ADES"])
 				}
-				if fp.EOBD != "080901" {
-					t.Errorf("Expected EOBD to be '080901', got '%s'", fp.EOBD)
+				if fp["EOBD"] != "080901" {
+					t.Errorf("Expected EOBD to be '080901', got '%v'", fp["EOBD"])
 				}
-				if fp.EOBT != "0945" {
-					t.Errorf("Expected EOBD to be '0945', got '%s'", fp.EOBT)
+				if fp["EOBT"] != "0945" {
+					t.Errorf("Expected EOBT to be '0945', got '%v'", fp["EOBT"])
 				}
-				if fp.REASON != "VOID" {
-					t.Errorf("Expected REASON to be 'OUTREG', got '%s'", fp.REASON)
+				if fp["REASON"] != "VOID" {
+					t.Errorf("Expected REASON to be 'VOID', got '%v'", fp["REASON"])
 				}
-				if fp.TAXITIME != "0020" {
-					t.Errorf("Expected TAXITIME to be '0020', got '%s'", fp.TTO.FL)
+				if fp["TAXITIME"] != "0020" {
+					t.Errorf("Expected TAXITIME to be '0020', got '%v'", fp["TAXITIME"])
 				}
-				if fp.COMMENT != "FLIGHT CANCELLED" {
-					t.Errorf("Expected COMMENT to be 'FLIGHT CANCELLED', got '%s'", fp.TTO.FL)
+				if fp["COMMENT"] != "FLIGHT CANCELLED" {
+					t.Errorf("Expected COMMENT to be 'FLIGHT CANCELLED', got '%v'", fp["COMMENT"])
 				}
 			},
 		},
 		{
-			/*
-				Test all fields according to the ATFCM USERS MANUAL
-				Edition: MAINT-2
-				Edition date: 18-06-2024
-			*/
 			name:     "FLS message",
 			filename: "FLS.txt",
-			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
-				if fp.TITLE != "FLS" {
-					t.Errorf("Expected TITLE to be FLS, got %s", fp.TITLE)
+			expected: func(t *testing.T, fp map[string]interface{}) {
+				if fp["TITLE"] != "FLS" {
+					t.Errorf("Expected TITLE to be FLS, got %v", fp["TITLE"])
 				}
-				if fp.ARCID != "AMC101" {
-					t.Errorf("Expected ARCID to be 'AMC101', got '%s'", fp.ARCID)
+				if fp["ARCID"] != "AMC101" {
+					t.Errorf("Expected ARCID to be 'AMC101', got '%v'", fp["ARCID"])
 				}
-				if fp.ADEP != "EGLL" {
-					t.Errorf("Expected ADEP to be 'EGLL', got '%s'", fp.ADEP)
+				if fp["ADEP"] != "EGLL" {
+					t.Errorf("Expected ADEP to be 'EGLL', got '%v'", fp["ADEP"])
 				}
-				if fp.ADES != "LMML" {
-					t.Errorf("Expected ADES to be 'LMML', got '%s'", fp.ADES)
+				if fp["ADES"] != "LMML" {
+					t.Errorf("Expected ADES to be 'LMML', got '%v'", fp["ADES"])
 				}
-				if fp.EOBD != "080901" {
-					t.Errorf("Expected EOBD to be '080901', got '%s'", fp.EOBD)
+				if fp["EOBD"] != "080901" {
+					t.Errorf("Expected EOBD to be '080901', got '%v'", fp["EOBD"])
 				}
-				if fp.EOBT != "0945" {
-					t.Errorf("Expected EOBD to be '0945', got '%s'", fp.EOBT)
+				if fp["EOBT"] != "0945" {
+					t.Errorf("Expected EOBT to be '0945', got '%v'", fp["EOBT"])
 				}
-				if fp.TAXITIME != "0020" {
-					t.Errorf("Expected TAXITIME to be '0020', got '%s'", fp.TAXITIME)
+				if fp["TAXITIME"] != "0020" {
+					t.Errorf("Expected TAXITIME to be '0020', got '%v'", fp["TAXITIME"])
 				}
-				if fp.COMMENT != "RVR UNKNOWN" {
-					t.Errorf("Expected COMMENT to be 'FLIGHT CANCELLED', got '%s'", fp.COMMENT)
+				if fp["COMMENT"] != "RVR UNKNOWN" {
+					t.Errorf("Expected COMMENT to be 'RVR UNKNOWN', got '%v'", fp["COMMENT"])
 				}
-				if fp.REGCAUSE != "WA 84" {
-					t.Errorf("Expected REGUL to be 'WA 84', got '%s'", fp.REGCAUSE)
+				if fp["REGCAUSE"] != "WA 84" {
+					t.Errorf("Expected REGCAUSE to be 'WA 84', got '%v'", fp["REGCAUSE"])
 				}
-				if fp.REGUL != "UZZU11" {
-					t.Errorf("Expected REGUL to be 'WA 84', got '%s'", fp.REGUL)
+				if fp["REGUL"] != "UZZU11" {
+					t.Errorf("Expected REGUL to be 'UZZU11', got '%v'", fp["REGUL"])
 				}
 			},
 		},
 		{
-			/*
-				Test all fields according to the ATFCM USERS MANUAL
-				Edition: MAINT-2
-				Edition date: 18-06-2024
-			*/
 			name:     "DES message",
 			filename: "DES.txt",
-			expected: func(t *testing.T, fp *goflightplan.Flightplan) {
-				if fp.TITLE != "DES" {
-					t.Errorf("Expected TITLE to be DES, got %s", fp.TITLE)
+			expected: func(t *testing.T, fp map[string]interface{}) {
+				if fp["TITLE"] != "DES" {
+					t.Errorf("Expected TITLE to be DES, got %v", fp["TITLE"])
 				}
-				if fp.ARCID != "AMC101" {
-					t.Errorf("Expected ARCID to be 'AMC101', got '%s'", fp.ARCID)
+				if fp["ARCID"] != "AMC101" {
+					t.Errorf("Expected ARCID to be 'AMC101', got '%v'", fp["ARCID"])
 				}
-				if fp.ADEP != "EGLL" {
-					t.Errorf("Expected ADEP to be 'EGLL', got '%s'", fp.ADEP)
+				if fp["ADEP"] != "EGLL" {
+					t.Errorf("Expected ADEP to be 'EGLL', got '%v'", fp["ADEP"])
 				}
-				if fp.ADES != "LMML" {
-					t.Errorf("Expected ADES to be 'LMML', got '%s'", fp.ADES)
+				if fp["ADES"] != "LMML" {
+					t.Errorf("Expected ADES to be 'LMML', got '%v'", fp["ADES"])
 				}
-				if fp.EOBD != "080901" {
-					t.Errorf("Expected EOBD to be '080901', got '%s'", fp.EOBD)
+				if fp["EOBD"] != "080901" {
+					t.Errorf("Expected EOBD to be '080901', got '%v'", fp["EOBD"])
 				}
-				if fp.EOBT != "0945" {
-					t.Errorf("Expected EOBD to be '0945', got '%s'", fp.EOBT)
+				if fp["EOBT"] != "0945" {
+					t.Errorf("Expected EOBT to be '0945', got '%v'", fp["EOBT"])
 				}
-				if fp.TAXITIME != "0020" {
-					t.Errorf("Expected TAXITIME to be '0020', got '%s'", fp.TAXITIME)
+				if fp["TAXITIME"] != "0020" {
+					t.Errorf("Expected TAXITIME to be '0020', got '%v'", fp["TAXITIME"])
 				}
-				if fp.COMMENT != "NEW ATFM MESSAGES MAY POSSIBLY BE PUBLISHED AT 2 HOURS BEFORE THE EOBT" {
-					t.Errorf("Expected COMMENT to be 'NEW ATFM MESSAGES MAY POSSIBLY BE PUBLISHED AT 2 HOURS BEFORE THE EOBT', got '%s'", fp.COMMENT)
+				if fp["COMMENT"] != "NEW ATFM MESSAGES MAY POSSIBLY BE PUBLISHED AT 2 HOURS BEFORE THE EOBT" {
+					t.Errorf("Expected COMMENT to be 'NEW ATFM MESSAGES MAY POSSIBLY BE PUBLISHED AT 2 HOURS BEFORE THE EOBT', got '%v'", fp["COMMENT"])
 				}
 			},
 		},
-
-		// Add more test cases for other message types
 	}
 
 	for _, tc := range testCases {
@@ -351,9 +335,8 @@ func Test_Parse_Errors(t *testing.T) {
 			filename:    "ADEXP_no_title.txt",
 			expectError: true,
 			expected: func(t *testing.T, err error) {
-				// Check other fields specific to BFD message
-				if err.Error() != "TITLE field not found in the message" {
-					t.Errorf("Expected to fail with message: '%s'", err.Error())
+				if err == nil || err.Error() != "TITLE field not found in the message" {
+					t.Errorf("Expected error 'TITLE field not found in the message', got: %v", err)
 				}
 			},
 		},
@@ -362,9 +345,8 @@ func Test_Parse_Errors(t *testing.T) {
 			filename:    "ADEXP_no_schema.txt",
 			expectError: true,
 			expected: func(t *testing.T, err error) {
-				// Check other fields specific to BFD message
-				if err.Error() != "no matching schema found for title: ABC" {
-					t.Errorf("Expected to fail with message: '%s'", err.Error())
+				if err == nil || err.Error() != "no matching schema found for title: ABC" {
+					t.Errorf("Expected error 'no matching schema found for title: ABC', got: %v", err)
 				}
 			},
 		},
@@ -373,9 +355,8 @@ func Test_Parse_Errors(t *testing.T) {
 			filename:    "ADEXP_empty.txt",
 			expectError: true,
 			expected: func(t *testing.T, err error) {
-				// Check other fields specific to BFD message
-				if err.Error() != "TITLE field not found in the message" {
-					t.Errorf("Expected to fail with message: '%s'", err.Error())
+				if err == nil || err.Error() != "TITLE field not found in the message" {
+					t.Errorf("Expected error 'TITLE field not found in the message', got: %v", err)
 				}
 			},
 		},
@@ -384,17 +365,13 @@ func Test_Parse_Errors(t *testing.T) {
 			filename:    "ADEXP_invalid_char.txt",
 			expectError: true,
 			expected: func(t *testing.T, err error) {
-				// Check other fields specific to BFD message
+				// The behavior for invalid characters might need to be defined
 				if err == nil {
-					return
+					t.Errorf("Expected an error for invalid characters, got nil")
 				}
-				if err.Error() != "no matching schema found for title: ABC" {
-					t.Errorf("Expected to fail with message: '%s'", err.Error())
-				}
+				fmt.Println(err)
 			},
 		},
-
-		// Add more test cases for other message types
 	}
 
 	for _, tc := range testCases {
@@ -405,14 +382,18 @@ func Test_Parse_Errors(t *testing.T) {
 				t.Fatalf("Failed to read test file: %v", err)
 			}
 			// Parse the message
-			fp, err := parser.Parse(string(content))
-			if err != nil && !tc.expectError {
-				t.Fatalf("Parse failed: %v", err)
+			_, err = parser.Parse(string(content))
+			if err == nil && tc.expectError {
+				t.Fatalf("Expected an error, but got nil")
 			}
-			fmt.Println(fp)
+			if err != nil && !tc.expectError {
+				t.Fatalf("Did not expect an error, but got: %v", err)
+			}
 
 			// Run the assertions
-			tc.expected(t, err)
+			if tc.expectError {
+				tc.expected(t, err)
+			}
 		})
 	}
 }

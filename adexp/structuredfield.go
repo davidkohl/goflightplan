@@ -2,8 +2,8 @@ package adexp
 
 import "strings"
 
+// parseStructuredField parses a structured field and adds it to the flightplan map
 func (p *Parser) parseStructuredField(field DataField) error {
-
 	structuredData := make(map[string]interface{})
 	for p.currentPos < len(p.message) {
 		subFieldName, subFieldValue, err := p.parseSubField(field.Subfields)
@@ -16,9 +16,11 @@ func (p *Parser) parseStructuredField(field DataField) error {
 		structuredData[subFieldName] = subFieldValue
 	}
 
-	return p.setFieldValue(field, structuredData)
+	p.flightplan[field.DataItem] = structuredData
+	return nil
 }
 
+// parseSubField parses a subfield and returns its name and value
 func (p *Parser) parseSubField(subfields []DataField) (string, interface{}, error) {
 	p.buffer.Reset()
 	for p.currentPos < len(p.message) && p.message[p.currentPos] == ' ' {
@@ -72,6 +74,7 @@ func (p *Parser) parseSubField(subfields []DataField) (string, interface{}, erro
 	return subFieldName, subFieldValue, nil
 }
 
+// parseNestedStructure parses a nested structure and returns it as a map
 func (p *Parser) parseNestedStructure(subfields []DataField) (map[string]interface{}, error) {
 	nestedData := make(map[string]interface{})
 	for {

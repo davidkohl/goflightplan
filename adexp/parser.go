@@ -2,50 +2,51 @@ package adexp
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"reflect"
 	"strings"
-
-	"github.com/davidkohl/goflightplan"
+	"unicode"
 )
 
+// Parser represents the ADEXP message parser
 type Parser struct {
 	MessageSet    []MessageSet
 	buffer        bytes.Buffer
 	currentPos    int
 	message       string
-	flightplan    *goflightplan.Flightplan
-	fplwrapper    *goflightplan.FlightplanWrapper
-	currentSchema *StandardSchema // New field to store the matched schema
+	flightplan    map[string]interface{}
+	currentSchema *StandardSchema
 }
 
+// NewParser creates a new Parser instance with the given schema
 func NewParser(schema []MessageSet) *Parser {
 	return &Parser{
 		MessageSet: schema,
-		flightplan: &goflightplan.Flightplan{},
-		fplwrapper: goflightplan.NewFlightplanWrapper(),
+		flightplan: make(map[string]interface{}),
 	}
 }
 
-func (p *Parser) Parse(message string) (*goflightplan.Flightplan, error) {
-
+// Parse parses the given ADEXP message and returns a map representation of the flight plan
+func (p *Parser) Parse(message string) (map[string]interface{}, error) {
 	p.currentPos = 0
-	message = strings.ReplaceAll(message, "\n", " ")
-	p.message = message
+	char, ok := validateMessage(message)
+	if !ok {
+		return nil, fmt.Errorf("invalid character '%v' found in message", string(char))
+	}
+	p.message = strings.ReplaceAll(message, "\n", " ")
+	p.flightplan = make(map[string]interface{})
 
-	titleStart := strings.Index(message, "-TITLE ")
+	titleStart := strings.Index(p.message, "-TITLE ")
 	if titleStart == -1 {
 		return nil, fmt.Errorf("TITLE field not found in the message")
 	}
 	titleStart += 7 // Length of "-TITLE "
-	titleEnd := strings.Index(message[titleStart:], "-")
+	titleEnd := strings.Index(p.message[titleStart:], "-")
 	if titleEnd == -1 {
-		titleEnd = len(message)
+		titleEnd = len(p.message)
 	} else {
 		titleEnd += titleStart
 	}
-	title := strings.TrimSpace(message[titleStart:titleEnd])
+	title := strings.TrimSpace(p.message[titleStart:titleEnd])
 
 	// Find the matching schema
 	matchedSchema, err := p.findMatchingSchema(title)
@@ -62,12 +63,11 @@ func (p *Parser) Parse(message string) (*goflightplan.Flightplan, error) {
 			return nil, fmt.Errorf("error parsing field: %w", err)
 		}
 	}
-	fpl := &goflightplan.Flightplan{}
-	fpl = p.flightplan
-	p.flightplan = &goflightplan.Flightplan{}
-	return fpl, nil
+
+	return p.flightplan, nil
 }
 
+// parseNextField parses the next field in the message
 func (p *Parser) parseNextField() error {
 	p.buffer.Reset()
 	for p.currentPos < len(p.message) && p.message[p.currentPos] != '-' {
@@ -97,6 +97,9 @@ func (p *Parser) parseNextField() error {
 		return p.parseBasicField(field)
 	case StructuredField:
 		return p.parseStructuredField(field)
+	case ListField:
+		return nil
+		//return p.parseListField(field)
 	default:
 		return fmt.Errorf("unknown field type for field '%s'", fieldName)
 	}
@@ -136,38 +139,38 @@ func (p *Parser) findMatchingSchema(title string) (*StandardSchema, error) {
 	return nil, fmt.Errorf("no matching schema found for title: %s", title)
 }
 
-func (p *Parser) setFieldValue(field DataField, value interface{}) error {
-	v := reflect.ValueOf(p.flightplan).Elem()
-	f := v.FieldByName(field.DataItem)
-
-	if !f.IsValid() {
-		return fmt.Errorf("field '%s' not found in Flightplan struct", field.DataItem)
-	}
-
-	if !f.CanSet() {
-		return fmt.Errorf("field '%s' cannot be set", field.DataItem)
-	}
-
-	switch f.Kind() {
-	case reflect.String:
-		f.SetString(value.(string))
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		// You might want to add proper parsing for integers
-		return fmt.Errorf("integer parsing not implemented for field '%s'", field.DataItem)
-	case reflect.Struct:
-		// For structured fields, we need to marshal the map to JSON and then unmarshal into the struct
-		mapValue, ok := value.(map[string]interface{})
-		if !ok {
-			return fmt.Errorf("expected map[string]interface{} for structured field '%s', got %T", field.DataItem, value)
+func validateMessage(message string) (rune, bool) {
+	for _, char := range message {
+		if c, ok := isValidCharacter(char); !ok {
+			return c, false
 		}
-		jsonData, err := json.Marshal(mapValue)
-		if err != nil {
-			return fmt.Errorf("failed to marshal structured field '%s': %w", field.DataItem, err)
-		}
-		return json.Unmarshal(jsonData, f.Addr().Interface())
-	default:
-		fmt.Printf("Unhandled field type for %s: %v\n", field.DataItem, f.Kind())
+	}
+	return rune(0), true
+}
+
+func isValidCharacter(char rune) (rune, bool) {
+	// Upper case letters (A to Z)
+	if unicode.IsUpper(char) {
+		return rune(0), true
 	}
 
-	return nil
+	// Digits (0 to 9)
+	if unicode.IsDigit(char) {
+		return rune(0), true
+	}
+
+	// Special graphic characters
+	switch char {
+	case ' ', '(', ')', '-', '?', ':', '.', ',', '\'', '=', '+', '/':
+		return rune(0), true
+	}
+
+	// Format effectors
+	switch char {
+	case '\r', '\n': // Carriage Return and Line Feed
+		return rune(0), true
+	}
+
+	// Any other character is invalid
+	return char, false
 }

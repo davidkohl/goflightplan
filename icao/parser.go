@@ -13,7 +13,7 @@ import (
 )
 
 type ParseHandler struct {
-	Fn   func(s string) (*goflightplan.Flightplan, error)
+	Fn   func(s string) (map[string]interface{}, error)
 	Name string
 }
 

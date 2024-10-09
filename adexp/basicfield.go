@@ -2,6 +2,7 @@ package adexp
 
 import "strings"
 
+// parseBasicField parses a basic field and adds it to the flightplan map
 func (p *Parser) parseBasicField(field DataField) error {
 	p.buffer.Reset()
 	p.currentPos++ // Skip the space after field name
@@ -11,5 +12,6 @@ func (p *Parser) parseBasicField(field DataField) error {
 	}
 
 	value := strings.TrimSpace(p.buffer.String())
-	return p.setFieldValue(field, value)
+	p.flightplan[field.DataItem] = value
+	return nil
 }

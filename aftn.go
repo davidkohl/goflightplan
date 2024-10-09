@@ -1,6 +1,6 @@
 package goflightplan
 
-func ParseAFTNHeader(fpl *Flightplan) error {
+func ParseAFTNHeader() error {
 
 	return nil
 }

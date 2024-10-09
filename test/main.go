@@ -7,9 +7,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/davidkohl/goflightplan"
 	"github.com/davidkohl/goflightplan/adexp"
-	"github.com/davidkohl/goflightplan/icao"
 )
 
 func main() {
@@ -42,10 +40,9 @@ func main() {
 	//m := base.MessageSet
 	//m1 := adexp.MessageSet{Name: "custom", Set: base.MessageSet}
 	//opts := adexp.ParserOpts{AFTNHeader: true}
-	opts1 := icao.ParserOpts{AFTNHeader: true}
+
 	p := adexp.NewParser([]adexp.MessageSet{*set})
 	_ = p
-	p1 := icao.NewParser(opts1)
 
 	files, err := os.ReadDir(*dir)
 	if err != nil {
@@ -62,23 +59,13 @@ func main() {
 			if err != nil {
 				fmt.Printf("could not read file %s: %v", filePath, err)
 			}
-			var a *goflightplan.Flightplan = &goflightplan.Flightplan{}
 			//Print the contents of the file
 			fpl, err := p.Parse(string(content))
-			if err == nil {
-				a = fpl
-			}
-			fpl, err = p1.Parse(string(content))
-			if err == nil {
-				a = fpl
-
+			if err != nil {
+				Logger.Error(err.Error())
 			}
 
-			if a != nil {
-				Logger.Warn("NO PArser could handle the fpl message")
-				continue
-			}
-			j, err := json.Marshal(a)
+			j, err := json.Marshal(fpl)
 			if err != nil {
 				fmt.Println(err)
 			}
