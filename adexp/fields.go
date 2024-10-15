@@ -2,8 +2,10 @@ package adexp
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 )
 
 const (
@@ -45,17 +47,18 @@ func MessageSetFromJSON(p string, n string) (*MessageSet, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	for _, file := range files {
 		var schema = StandardSchema{}
 		// Check if it's a regular file (not a directory)
 		if file.Type().IsRegular() {
 			// Get the full path of the file
+			if strings.Split(file.Name(), ".")[1] != "json" {
+				continue
+			}
 			filePath := p + "/" + file.Name()
 
 			// Read the file's contents
 			content, err := os.ReadFile(filePath)
-
 			if err != nil {
 				return nil, err
 			}
@@ -65,6 +68,10 @@ func MessageSetFromJSON(p string, n string) (*MessageSet, error) {
 			}
 			set.Set[schema.Category] = schema
 		}
+	}
+
+	if len(set.Set) == 0 {
+		return nil, errors.New("length of set is 0")
 	}
 
 	return &set, nil

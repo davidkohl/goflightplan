@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/davidkohl/goflightplan/icao"
 )
 
 // Parser represents the ADEXP message parser
 type Parser struct {
+	ParserOpts    icao.ParserOpts
 	MessageSet    []MessageSet
 	buffer        bytes.Buffer
 	currentPos    int
@@ -85,21 +88,32 @@ func (p *Parser) parseNextField() error {
 	}
 
 	fieldName := p.buffer.String()
+
+	// Check if the field is "BEGIN", indicating a list field
+	if fieldName == "BEGIN" {
+		// Look ahead to find the actual list field name
+		p.currentPos++ // Skip the space after "BEGIN"
+		p.buffer.Reset()
+		for p.currentPos < len(p.message) && p.message[p.currentPos] != ' ' && p.message[p.currentPos] != '-' {
+			p.buffer.WriteByte(p.message[p.currentPos])
+			p.currentPos++
+		}
+		fieldName = p.buffer.String()
+	}
+
 	field, _, err := p.findFieldInSchema(fieldName)
 	if err != nil {
-		// If the field is not found in the schema, we'll skip it
+		// If the ffieldNameield is not found in the schema, we'll skip it
 		p.skipUnknownField()
 		return UnknownFieldError{FieldName: fieldName}
 	}
-
 	switch field.Type {
 	case Basicfield:
 		return p.parseBasicField(field)
 	case StructuredField:
 		return p.parseStructuredField(field)
 	case ListField:
-		return nil
-		//return p.parseListField(field)
+		return nil //return p.parseListField(field)
 	default:
 		return fmt.Errorf("unknown field type for field '%s'", fieldName)
 	}

@@ -9,7 +9,7 @@ import (
 
 func Test_Parse(t *testing.T) {
 	// Load the test schema from JSON files
-	testSchema := []MessageSet{loadTestMessageSet(t)}
+	testSchema := []MessageSet{LoadTestMessageSet(t)}
 	parser := NewParser(testSchema)
 
 	testCases := []struct {
@@ -69,8 +69,31 @@ func Test_Parse(t *testing.T) {
 				if fp["WKTRC"] != "M" {
 					t.Errorf("Expected WKTRC to be 'M', got %v", fp["WKTRC"])
 				}
-			},
-		},
+				// rtepts, ok := fp["RTEPTS"].([]map[string]interface{})
+				// if !ok {
+				// 	t.Errorf("Expected RTEPTS to be a []map[string]interface{}, got %T", fp["RTEPTS"])
+				// 	return
+				// }
+				// if len(rtepts) != 3 {
+				// 	t.Errorf("Expected RTEPTS to have 3 elements, got %d", len(rtepts))
+				// 	return
+				// }
+
+				// expectedRTEPTS := []map[string]interface{}{
+				// 	{"PTID": "WOODY", "TO": "1235", "FL": "F210"},
+				// 	{"PTID": "CIV", "TO": "1239", "FL": "F330"},
+				// 	{"PTID": "NEBUL", "TO": "1240"},
+				// }
+
+				// for i, expectedPT := range expectedRTEPTS {
+				// 	for key, expectedValue := range expectedPT {
+				// 		if rtepts[i][key] != expectedValue {
+				// 			t.Errorf("Expected RTEPTS[%d][%s] to be %s, got %s", i, key, expectedValue, rtepts[i][key])
+				// 		}
+				// 	}
+				// }
+
+			}},
 		{
 			name:     "CFD message",
 			filename: "CFD.txt",
@@ -320,7 +343,7 @@ func Test_Parse(t *testing.T) {
 
 func Test_Parse_Errors(t *testing.T) {
 	// Load the test schema from JSON files
-	testSchema := []MessageSet{loadTestMessageSet(t)}
+	testSchema := []MessageSet{LoadTestMessageSet(t)}
 	parser := NewParser(testSchema)
 
 	testCases := []struct {
@@ -399,7 +422,7 @@ func Test_Parse_Errors(t *testing.T) {
 }
 
 // Helper function to load the MessageSet
-func loadTestMessageSet(t *testing.T) MessageSet {
+func LoadTestMessageSet(t *testing.T) MessageSet {
 	t.Helper()
 	messageSet, err := MessageSetFromJSON("../test/schema", "TestSet")
 	if err != nil {
