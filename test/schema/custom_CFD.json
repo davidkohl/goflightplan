@@ -589,6 +589,43 @@
                     "Description": "Aircraft type",
                     "Type": 0,
                     "Mendatory": false
+                },
+                {
+                    "FRN": 7,
+                    "DataItem": "RTEPTS",
+                    "Description": "Aircraft type",
+                    "Type": 1,
+                    "Mendatory": false,
+                    "Subfields": [
+                        {
+                            "FRN": 7,
+                            "DataItem": "PT",
+                            "Description": "Aircraft type",
+                            "Type": 2,
+                            "Mendatory": false,
+                            "Subfields":[{
+                                "FRN": 7,
+                                "DataItem": "PTID",
+                                "Description": "Aircraft type",
+                                "Type": 0,
+                                "Mendatory": false
+                            },
+                            {
+                                "FRN": 7,
+                                "DataItem": "TO",
+                                "Description": "Aircraft type",
+                                "Type": 0,
+                                "Mendatory": false
+                            },
+                            {
+                                "FRN": 7,
+                                "DataItem": "FL",
+                                "Description": "Aircraft type",
+                                "Type": 0,
+                                "Mendatory": false
+                            }]
+                        }
+                    ]
                 }
             ]
         }

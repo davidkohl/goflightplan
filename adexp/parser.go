@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
-
-	"github.com/davidkohl/goflightplan/icao"
 )
 
 // Parser represents the ADEXP message parser
 type Parser struct {
-	ParserOpts    icao.ParserOpts
 	MessageSet    []MessageSet
 	buffer        bytes.Buffer
 	currentPos    int
@@ -31,16 +28,41 @@ func NewParser(schema []MessageSet) *Parser {
 // Parse parses the given ADEXP message and returns a map representation of the flight plan
 func (p *Parser) Parse(message string) (map[string]interface{}, error) {
 	p.currentPos = 0
-	char, ok := validateMessage(message)
-	if !ok {
-		return nil, fmt.Errorf("invalid character '%v' found in message", string(char))
-	}
 	p.message = strings.ReplaceAll(message, "\n", " ")
 	p.flightplan = make(map[string]interface{})
 
+	if err := p.validateMessage(); err != nil {
+		return nil, err
+	}
+
+	if err := p.findTitle(); err != nil {
+		return nil, err
+	}
+
+	for p.currentPos < len(p.message) {
+		if err := p.parseNextField(); err != nil {
+			return nil, fmt.Errorf("error parsing field: %w", err)
+		}
+	}
+
+	return p.flightplan, nil
+}
+
+// validateMessage checks if the message contains only valid characters
+func (p *Parser) validateMessage() error {
+	for _, char := range p.message {
+		if !isValidCharacter(char) {
+			return fmt.Errorf("invalid character '%v' found in message", string(char))
+		}
+	}
+	return nil
+}
+
+// findTitle locates the TITLE field and sets the appropriate schema
+func (p *Parser) findTitle() error {
 	titleStart := strings.Index(p.message, "-TITLE ")
 	if titleStart == -1 {
-		return nil, fmt.Errorf("TITLE field not found in the message")
+		return fmt.Errorf("TITLE field not found in the message")
 	}
 	titleStart += 7 // Length of "-TITLE "
 	titleEnd := strings.Index(p.message[titleStart:], "-")
@@ -51,26 +73,14 @@ func (p *Parser) Parse(message string) (map[string]interface{}, error) {
 	}
 	title := strings.TrimSpace(p.message[titleStart:titleEnd])
 
-	// Find the matching schema
 	matchedSchema, err := p.findMatchingSchema(title)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	p.currentSchema = matchedSchema
-
-	for p.currentPos < len(p.message) {
-		if err := p.parseNextField(); err != nil {
-			if _, ok := err.(UnknownFieldError); ok {
-				continue
-			}
-			return nil, fmt.Errorf("error parsing field: %w", err)
-		}
-	}
-
-	return p.flightplan, nil
+	return nil
 }
 
-// parseNextField parses the next field in the message
 func (p *Parser) parseNextField() error {
 	p.buffer.Reset()
 	for p.currentPos < len(p.message) && p.message[p.currentPos] != '-' {
@@ -89,59 +99,49 @@ func (p *Parser) parseNextField() error {
 
 	fieldName := p.buffer.String()
 
-	// Check if the field is "BEGIN", indicating a list field
+	// Check if this is the start of a list field
 	if fieldName == "BEGIN" {
-		// Look ahead to find the actual list field name
-		p.currentPos++ // Skip the space after "BEGIN"
-		p.buffer.Reset()
-		for p.currentPos < len(p.message) && p.message[p.currentPos] != ' ' && p.message[p.currentPos] != '-' {
-			p.buffer.WriteByte(p.message[p.currentPos])
-			p.currentPos++
-		}
-		fieldName = p.buffer.String()
+		return p.handleListField()
 	}
 
-	field, _, err := p.findFieldInSchema(fieldName)
-	if err != nil {
-		// If the ffieldNameield is not found in the schema, we'll skip it
+	field := p.findField(fieldName, p.currentSchema.Items)
+	if field == nil {
+		// If the field is not found in the schema, we'll skip it
 		p.skipUnknownField()
-		return UnknownFieldError{FieldName: fieldName}
+		return nil
 	}
+
 	switch field.Type {
 	case Basicfield:
-		return p.parseBasicField(field)
+		key, value, err := p.parseBasicField(*field)
+		if err != nil {
+			return err
+		}
+		p.flightplan[key] = value
 	case StructuredField:
-		return p.parseStructuredField(field)
-	case ListField:
-		return nil //return p.parseListField(field)
+		key, value, err := p.parseStructuredField(*field)
+		if err != nil {
+			return err
+		}
+		p.flightplan[key] = value
 	default:
 		return fmt.Errorf("unknown field type for field '%s'", fieldName)
 	}
+
+	return nil
 }
 
-func (p *Parser) skipUnknownField() {
-	for p.currentPos < len(p.message) && p.message[p.currentPos] != '-' {
-		p.currentPos++
-	}
-}
-
-type UnknownFieldError struct {
-	FieldName string
-}
-
-func (e UnknownFieldError) Error() string {
-	return fmt.Sprintf("unknown field: %s", e.FieldName)
-}
-
-func (p *Parser) findFieldInSchema(fieldName string) (DataField, []DataField, error) {
-	for _, item := range p.currentSchema.Items {
-		if item.DataItem == fieldName {
-			return item, item.Subfields, nil
+// findField finds a field in the given slice of DataFields
+func (p *Parser) findField(fieldName string, fields []DataField) *DataField {
+	for i := range fields {
+		if fields[i].DataItem == fieldName {
+			return &fields[i]
 		}
 	}
-	return DataField{}, nil, fmt.Errorf("field '%s' not found in schema", fieldName)
+	return nil
 }
 
+// findMatchingSchema finds the matching schema for the given title
 func (p *Parser) findMatchingSchema(title string) (*StandardSchema, error) {
 	for _, messageSet := range p.MessageSet {
 		for _, schema := range messageSet.Set {
@@ -153,38 +153,50 @@ func (p *Parser) findMatchingSchema(title string) (*StandardSchema, error) {
 	return nil, fmt.Errorf("no matching schema found for title: %s", title)
 }
 
-func validateMessage(message string) (rune, bool) {
-	for _, char := range message {
-		if c, ok := isValidCharacter(char); !ok {
-			return c, false
-		}
+// skipUnknownField skips an unknown field in the message
+func (p *Parser) skipUnknownField() {
+	for p.currentPos < len(p.message) && p.message[p.currentPos] != '-' {
+		p.currentPos++
 	}
-	return rune(0), true
 }
 
-func isValidCharacter(char rune) (rune, bool) {
-	// Upper case letters (A to Z)
-	if unicode.IsUpper(char) {
-		return rune(0), true
+// isValidCharacter checks if a character is valid for ADEXP messages
+func isValidCharacter(char rune) bool {
+	if unicode.IsUpper(char) || unicode.IsDigit(char) {
+		return true
 	}
 
-	// Digits (0 to 9)
-	if unicode.IsDigit(char) {
-		return rune(0), true
-	}
-
-	// Special graphic characters
 	switch char {
-	case ' ', '(', ')', '-', '?', ':', '.', ',', '\'', '=', '+', '/':
-		return rune(0), true
+	case ' ', '(', ')', '-', '?', ':', '.', ',', '\'', '=', '+', '/', '\r', '\n':
+		return true
 	}
 
-	// Format effectors
-	switch char {
-	case '\r', '\n': // Carriage Return and Line Feed
-		return rune(0), true
+	return false
+}
+
+// handleListField handles the parsing of a list field
+func (p *Parser) handleListField() error {
+	// Skip the space after "BEGIN"
+	p.currentPos++
+
+	// Read the list field name
+	p.buffer.Reset()
+	for p.currentPos < len(p.message) && p.message[p.currentPos] != ' ' && p.message[p.currentPos] != '-' {
+		p.buffer.WriteByte(p.message[p.currentPos])
+		p.currentPos++
+	}
+	listFieldName := p.buffer.String()
+
+	field := p.findField(listFieldName, p.currentSchema.Items)
+	if field == nil || field.Type != ListField {
+		return nil
 	}
 
-	// Any other character is invalid
-	return char, false
+	key, value, err := p.parseListField(*field)
+	if err != nil {
+		return fmt.Errorf("error parsing list field '%s': %w", listFieldName, err)
+	}
+	p.flightplan[key] = value
+
+	return nil
 }

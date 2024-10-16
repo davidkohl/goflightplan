@@ -1,14 +1,17 @@
 package adexp
 
-import "strings"
+import (
+	"fmt"
+)
 
-// parseStructuredField parses a structured field and adds it to the flightplan map
-func (p *Parser) parseStructuredField(field DataField) error {
+// parseStructuredField parses a structured field and returns its key, value (as a map), and any error
+func (p *Parser) parseStructuredField(field DataField) (string, map[string]interface{}, error) {
 	structuredData := make(map[string]interface{})
-	for p.currentPos < len(p.message) {
+
+	for {
 		subFieldName, subFieldValue, err := p.parseSubField(field.Subfields)
 		if err != nil {
-			return err
+			return "", nil, err
 		}
 		if subFieldName == "" {
 			break
@@ -16,11 +19,10 @@ func (p *Parser) parseStructuredField(field DataField) error {
 		structuredData[subFieldName] = subFieldValue
 	}
 
-	p.flightplan[field.DataItem] = structuredData
-	return nil
+	return field.DataItem, structuredData, nil
 }
 
-// parseSubField parses a subfield and returns its name and value
+// parseSubField parses a subfield and returns its name, value, and any error
 func (p *Parser) parseSubField(subfields []DataField) (string, interface{}, error) {
 	p.buffer.Reset()
 	for p.currentPos < len(p.message) && p.message[p.currentPos] == ' ' {
@@ -37,55 +39,21 @@ func (p *Parser) parseSubField(subfields []DataField) (string, interface{}, erro
 	}
 	subFieldName := p.buffer.String()
 
-	p.currentPos++ // Skip the space after the field name
-	p.buffer.Reset()
-
-	// Find the subfield definition
-	var subFieldDef *DataField
-	for i := range subfields {
-		if subfields[i].DataItem == subFieldName {
-			subFieldDef = &subfields[i]
-			break
-		}
-	}
-
+	subFieldDef := p.findField(subFieldName, subfields)
 	if subFieldDef == nil {
 		// This might be a new top-level field, so we need to backtrack
 		p.currentPos -= len(subFieldName) + 2 // +2 for '-' and space
 		return "", nil, nil
 	}
 
-	// Handle nested structures
-	if subFieldDef.Type == StructuredField {
-		nestedData, err := p.parseNestedStructure(subFieldDef.Subfields)
-		if err != nil {
-			return "", nil, err
-		}
-		return subFieldName, nestedData, nil
+	switch subFieldDef.Type {
+	case Basicfield:
+		_, value, err := p.parseBasicField(*subFieldDef)
+		return subFieldName, value, err
+	case StructuredField:
+		_, value, err := p.parseStructuredField(*subFieldDef)
+		return subFieldName, value, err
+	default:
+		return "", nil, fmt.Errorf("unsupported subfield type for '%s'", subFieldName)
 	}
-
-	// Parse simple value
-	for p.currentPos < len(p.message) && p.message[p.currentPos] != '-' {
-		p.buffer.WriteByte(p.message[p.currentPos])
-		p.currentPos++
-	}
-	subFieldValue := strings.TrimSpace(p.buffer.String())
-
-	return subFieldName, subFieldValue, nil
-}
-
-// parseNestedStructure parses a nested structure and returns it as a map
-func (p *Parser) parseNestedStructure(subfields []DataField) (map[string]interface{}, error) {
-	nestedData := make(map[string]interface{})
-	for {
-		subFieldName, subFieldValue, err := p.parseSubField(subfields)
-		if err != nil {
-			return nil, err
-		}
-		if subFieldName == "" {
-			break
-		}
-		nestedData[subFieldName] = subFieldValue
-	}
-	return nestedData, nil
 }
