@@ -330,6 +330,22 @@
                     }]
                 }
             ]
+        },
+        {
+            "FRN": 7,
+            "DataItem": "EQCST",
+            "Description": "Aircraft type",
+            "Type": 1,
+            "Mendatory": false,
+            "Subfields": [
+                {
+                    "FRN": 7,
+                    "DataItem": "EQPT",
+                    "Description": "Aircraft type",
+                    "Type": 0,
+                    "Mendatory": false
+                }
+            ]
         }
 
     ]

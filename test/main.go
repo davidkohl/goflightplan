@@ -65,7 +65,7 @@ func main() {
 				Logger.Error(err.Error())
 			}
 
-			j, err := json.Marshal(fpl)
+			j, err := json.MarshalIndent(fpl, "", "\t")
 			if err != nil {
 				fmt.Println(err)
 			}
