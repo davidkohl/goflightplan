@@ -8,20 +8,26 @@ import (
 // parseListField parses a list field and returns its key, value (as a slice), and any error
 func (p *Parser) parseListField(field DataField) (string, []interface{}, error) {
 	listData := make([]interface{}, 0)
+	log.Printf("Parsing list field: %s", field.DataItem)
 
 	for {
+		if p.checkForEndMarker(field.DataItem) {
+			break // End of list reached
+		}
+
 		item, err := p.parseListItem(field.Subfields)
 		if err != nil {
-			return "", nil, fmt.Errorf("error parsing list item: %w", err)
-		}
-		listData = append(listData, item)
-
-		// Check for END marker after each item
-		if p.checkForEndMarker(field.DataItem) {
 			break
 		}
+		if item == nil {
+			// This should not happen with the current implementation,
+			// but we keep it for future-proofing and clarity
+			continue
+		}
+		listData = append(listData, item)
 	}
 
+	log.Printf("Finished parsing list field: %s, found %d items", field.DataItem, len(listData))
 	return field.DataItem, listData, nil
 }
 
@@ -43,7 +49,7 @@ func (p *Parser) parseSimpleListItem(subfield DataField) (string, error) {
 		return "", fmt.Errorf("error parsing simple list item: %w", err)
 	}
 	if subFieldName == "" {
-		return "", nil // End of list
+		return "", fmt.Errorf("unexpected end of simple list item")
 	}
 	return subFieldValue.(string), nil
 }
@@ -61,13 +67,22 @@ func (p *Parser) parseStructuredListItem(subfields []DataField) (map[string]inte
 			break // End of current item or start of next item
 		}
 
-		// If the subfield value is a map, flatten it
-		if subValue, ok := subFieldValue.(map[string]interface{}); ok {
-			for k, v := range subValue {
-				item[k] = v
+		// Check if the subfield is defined in the schema
+		if subField := p.findField(subFieldName, subfields); subField != nil {
+			// If the subfield value is a map, flatten it
+			if subValue, ok := subFieldValue.(map[string]interface{}); ok {
+
+				for k, v := range subValue {
+					item[k] = v
+				}
+			} else {
+				panic(subFieldName)
+				item[subFieldName] = subFieldValue
 			}
 		} else {
-			item[subFieldName] = subFieldValue
+			// Skip this field as it's not in the subfield definition
+			p.skipUnexpectedField()
+			log.Printf("Skipping undefined subfield: %s", subFieldName)
 		}
 
 		// Check if we've reached the start of a new item
@@ -77,7 +92,7 @@ func (p *Parser) parseStructuredListItem(subfields []DataField) (map[string]inte
 	}
 
 	if len(item) == 0 {
-		return nil, nil // No item parsed, end of list
+		return nil, fmt.Errorf("empty structured list item")
 	}
 
 	return item, nil
@@ -156,4 +171,10 @@ func (p *Parser) checkForEndMarker(fieldName string) bool {
 	}
 
 	return true
+}
+
+func (p *Parser) skipUnexpectedField() {
+	for p.currentPos < len(p.message) && p.message[p.currentPos] != '-' {
+		p.currentPos++
+	}
 }

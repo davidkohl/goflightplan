@@ -63,6 +63,7 @@ func main() {
 			fpl, err := p.Parse(string(content))
 			if err != nil {
 				Logger.Error(err.Error())
+				continue
 			}
 
 			j, err := json.MarshalIndent(fpl, "", "\t")

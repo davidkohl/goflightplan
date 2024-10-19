@@ -187,13 +187,6 @@
         },
         {
             "FRN": 15,
-            "DataItem": "NEWCTOT",
-            "Description": "NEWCTOT",
-            "Type": 0,
-            "Mendatory": false
-        },
-        {
-            "FRN": 15,
             "DataItem": "ROUTE",
             "Description": "ROUTE",
             "Type": 0,
@@ -282,14 +275,21 @@
         },
         {
             "FRN": 7,
-            "DataItem": "FPLCAT",
+            "DataItem": "OPR",
             "Description": "Aircraft type",
             "Type": 0,
             "Mendatory": false
         },
         {
             "FRN": 7,
-            "DataItem": "OPR",
+            "DataItem": "RMK",
+            "Description": "Aircraft type",
+            "Type": 0,
+            "Mendatory": false
+        },
+        {
+            "FRN": 7,
+            "DataItem": "SSRCODE",
             "Description": "Aircraft type",
             "Type": 0,
             "Mendatory": false
@@ -327,6 +327,13 @@
                         "Description": "Aircraft type",
                         "Type": 0,
                         "Mendatory": false
+                    },
+                    {
+                        "FRN": 7,
+                        "DataItem": "SFL",
+                        "Description": "Aircraft type",
+                        "Type": 0,
+                        "Mendatory": false
                     }]
                 }
             ]
@@ -347,6 +354,5 @@
                 }
             ]
         }
-
     ]
 }

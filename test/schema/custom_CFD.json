@@ -187,13 +187,6 @@
         },
         {
             "FRN": 15,
-            "DataItem": "NEWCTOT",
-            "Description": "NEWCTOT",
-            "Type": 0,
-            "Mendatory": false
-        },
-        {
-            "FRN": 15,
             "DataItem": "ROUTE",
             "Description": "ROUTE",
             "Type": 0,
@@ -282,6 +275,13 @@
         },
         {
             "FRN": 7,
+            "DataItem": "SSRCODE",
+            "Description": "Aircraft type",
+            "Type": 0,
+            "Mendatory": false
+        },
+        {
+            "FRN": 7,
             "DataItem": "FPLCAT",
             "Description": "Aircraft type",
             "Type": 0,
@@ -295,337 +295,69 @@
             "Mendatory": false
         },
         {
-            "Name": "custom",
-            "Category": "BFD",
-            "Version": "0.1",
-            "Items": [
-                {
-                    "FRN": 1,
-                    "DataItem": "TITLE",
-                    "Description": "Title of the ADEXP Message",
-                    "Type": 0,
-                    "Mendatory": true
-                },
-                {
-                    "FRN": 2,
-                    "DataItem": "REFDATA",
-                    "Description": "Message Reference with sender, receiver and sequence number",
-                    "Type": 2,
-                    "Mendatory": true,
-                    "Subfields": [
-                        {
-                            "FRN": 2,
-                            "DataItem": "SENDER",
-                            "Description": "Message Reference with sender, receiver and sequence number",
-                            "Type": 2,
-                            "Mendatory": true,
-                            "Subfields": [
-                                {
-                                    "FRN": 2,
-                                    "DataItem": "FAC",
-                                    "Description": "Message Reference with sender, receiver and sequence number",
-                                    "Type": 0,
-                                    "Mendatory": true
-                                }
-                            ]
-                        },
-                        {
-                            "FRN": 2,
-                            "DataItem": "RECVR",
-                            "Description": "Message Reference with sender, receiver and sequence number",
-                            "Type": 2,
-                            "Mendatory": true,
-                            "Subfields": [
-                                {
-                                    "FRN": 2,
-                                    "DataItem": "FAC",
-                                    "Description": "Message Reference with sender, receiver and sequence number",
-                                    "Type": 0,
-                                    "Mendatory": true
-                                }
-                            ]
-                        },
-                        {
-                            "FRN": 2,
-                            "DataItem": "SEQNUM",
-                            "Description": "Title of the ADEXP Message",
-                            "Type": 0,
-                            "Mendatory": true
-                        }
-                    ]
-                },
-                {
-                    "FRN": 3,
-                    "DataItem": "ARCID",
-                    "Description": "Aircraft id or callsign",
-                    "Type": 0,
-                    "Mendatory": true
-                },
-                {
-                    "FRN": 5,
-                    "DataItem": "ADEP",
-                    "Description": "Aerodrom of departure",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 6,
-                    "DataItem": "ADES",
-                    "Description": "Aerodrom of destination",
-                    "Type": 0,
-                    "Mendatory": false
-                },
+            "FRN": 7,
+            "DataItem": "RMK",
+            "Description": "Aircraft type",
+            "Type": 0,
+            "Mendatory": false
+        },
+        {
+            "FRN": 7,
+            "DataItem": "FPLCAT",
+            "Description": "Aircraft type",
+            "Type": 0,
+            "Mendatory": false
+        },
+        {
+            "FRN": 7,
+            "DataItem": "RTEPTS",
+            "Description": "Aircraft type",
+            "Type": 1,
+            "Mendatory": false,
+            "Subfields": [
                 {
                     "FRN": 7,
-                    "DataItem": "ARCTYP",
-                    "Description": "Aircraft type",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 7,
-                    "DataItem": "WKTRC",
-                    "Description": "Aircraft type",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 7,
-                    "DataItem": "FLTRUL",
-                    "Description": "Aircraft type",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 7,
-                    "DataItem": "FLTTYP",
-                    "Description": "Aircraft type",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 8,
-                    "DataItem": "IFPLID",
-                    "Description": "Individual flight plan id",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 9,
-                    "DataItem": "EOBT",
-                    "Description": "Estimated off block time",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 10,
-                    "DataItem": "ELDT",
-                    "Description": "Estimated landing time",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-        
-                {
-                    "FRN": 12,
-                    "DataItem": "EOBD",
-                    "Description": "Day of Flight",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 13,
-                    "DataItem": "FLTTYP",
-                    "Description": "Day of Flight",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 14,
-                    "DataItem": "FLTRUL",
-                    "Description": "Day of Flight",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 15,
-                    "DataItem": "FPLCAT",
-                    "Description": "FPLCAT",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 15,
-                    "DataItem": "CTOT",
-                    "Description": "CTOT",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 15,
-                    "DataItem": "SID",
-                    "Description": "SID",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 15,
-                    "DataItem": "STAR",
-                    "Description": "STAR",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 15,
-                    "DataItem": "REG",
-                    "Description": "REG",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 15,
-                    "DataItem": "NEWCTOT",
-                    "Description": "NEWCTOT",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 15,
-                    "DataItem": "ROUTE",
-                    "Description": "ROUTE",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 15,
-                    "DataItem": "CFL",
-                    "Description": "Cleard flight level",
-                    "Type": 2,
-                    "Mendatory": false,
-                    "Subfields": [
-                        {
-                            "FRN": 15,
-                            "DataItem": "FL",
-                            "Description": "FL",
-                            "Type": 0,
-                            "Mendatory": false
-                        }
-                    ]
-                },
-                {
-                    "FRN": 7,
-                    "DataItem": "RFL",
-                    "Description": "Aircraft type",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 7,
-                    "DataItem": "SPEED",
-                    "Description": "Aircraft type",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 7,
-                    "DataItem": "TTLEET",
-                    "Description": "Aircraft type",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 7,
-                    "DataItem": "COORDATA",
+                    "DataItem": "PT",
                     "Description": "Aircraft type",
                     "Type": 2,
                     "Mendatory": false,
-                    "Subfields":[
-                        {
-                            "FRN": 7,
-                            "DataItem": "PTID",
-                            "Description": "Aircraft type",
-                            "Type": 0,
-                            "Mendatory": false
-                        },
-                        {
-                            "FRN": 7,
-                            "DataItem": "TO",
-                            "Description": "Aircraft type",
-                            "Type": 0,
-                            "Mendatory": false
-                        },
-                        {
-                            "FRN": 7,
-                            "DataItem": "TFL",
-                            "Description": "Aircraft type",
-                            "Type": 0,
-                            "Mendatory": false
-                        }
-                    ]
-                },
+                    "Subfields":[{
+                        "FRN": 7,
+                        "DataItem": "PTID",
+                        "Description": "Aircraft type",
+                        "Type": 0,
+                        "Mendatory": false
+                    },
+                    {
+                        "FRN": 7,
+                        "DataItem": "TO",
+                        "Description": "Aircraft type",
+                        "Type": 0,
+                        "Mendatory": false
+                    },
+                    {
+                        "FRN": 7,
+                        "DataItem": "FL",
+                        "Description": "Aircraft type",
+                        "Type": 0,
+                        "Mendatory": false
+                    }]
+                }
+            ]
+        },
+        {
+            "FRN": 7,
+            "DataItem": "EQCST",
+            "Description": "Aircraft type",
+            "Type": 1,
+            "Mendatory": false,
+            "Subfields": [
                 {
                     "FRN": 7,
-                    "DataItem": "CEQPT",
+                    "DataItem": "EQPT",
                     "Description": "Aircraft type",
                     "Type": 0,
                     "Mendatory": false
-                },
-                {
-                    "FRN": 7,
-                    "DataItem": "RMK",
-                    "Description": "Aircraft type",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 7,
-                    "DataItem": "FPLCAT",
-                    "Description": "Aircraft type",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 7,
-                    "DataItem": "SSRCODE",
-                    "Description": "Aircraft type",
-                    "Type": 0,
-                    "Mendatory": false
-                },
-                {
-                    "FRN": 7,
-                    "DataItem": "RTEPTS",
-                    "Description": "Aircraft type",
-                    "Type": 1,
-                    "Mendatory": false,
-                    "Subfields": [
-                        {
-                            "FRN": 7,
-                            "DataItem": "PT",
-                            "Description": "Aircraft type",
-                            "Type": 2,
-                            "Mendatory": false,
-                            "Subfields":[{
-                                "FRN": 7,
-                                "DataItem": "PTID",
-                                "Description": "Aircraft type",
-                                "Type": 0,
-                                "Mendatory": false
-                            },
-                            {
-                                "FRN": 7,
-                                "DataItem": "TO",
-                                "Description": "Aircraft type",
-                                "Type": 0,
-                                "Mendatory": false
-                            },
-                            {
-                                "FRN": 7,
-                                "DataItem": "FL",
-                                "Description": "Aircraft type",
-                                "Type": 0,
-                                "Mendatory": false
-                            }]
-                        }
-                    ]
                 }
             ]
         }

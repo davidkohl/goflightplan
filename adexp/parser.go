@@ -29,6 +29,8 @@ func NewParser(schema []MessageSet) *Parser {
 func (p *Parser) Parse(message string) (map[string]interface{}, error) {
 	p.currentPos = 0
 	p.message = strings.ReplaceAll(message, "\n", " ")
+	p.message = strings.TrimSpace(p.message)
+	p.message = strings.TrimSuffix(p.message, "NNNN")
 	p.flightplan = make(map[string]interface{})
 
 	if err := p.validateMessage(); err != nil {
@@ -64,6 +66,7 @@ func (p *Parser) findTitle() error {
 	if titleStart == -1 {
 		return fmt.Errorf("TITLE field not found in the message")
 	}
+
 	titleStart += 7 // Length of "-TITLE "
 	titleEnd := strings.Index(p.message[titleStart:], "-")
 	if titleEnd == -1 {

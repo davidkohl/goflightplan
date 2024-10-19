@@ -69,29 +69,64 @@ func Test_Parse(t *testing.T) {
 				if fp["WKTRC"] != "M" {
 					t.Errorf("Expected WKTRC to be 'M', got %v", fp["WKTRC"])
 				}
-				// rtepts, ok := fp["RTEPTS"].([]map[string]interface{})
-				// if !ok {
-				// 	t.Errorf("Expected RTEPTS to be a []map[string]interface{}, got %T", fp["RTEPTS"])
-				// 	return
-				// }
-				// if len(rtepts) != 3 {
-				// 	t.Errorf("Expected RTEPTS to have 3 elements, got %d", len(rtepts))
-				// 	return
-				// }
 
-				// expectedRTEPTS := []map[string]interface{}{
-				// 	{"PTID": "WOODY", "TO": "1235", "FL": "F210"},
-				// 	{"PTID": "CIV", "TO": "1239", "FL": "F330"},
-				// 	{"PTID": "NEBUL", "TO": "1240"},
-				// }
+				// ##########################
 
-				// for i, expectedPT := range expectedRTEPTS {
-				// 	for key, expectedValue := range expectedPT {
-				// 		if rtepts[i][key] != expectedValue {
-				// 			t.Errorf("Expected RTEPTS[%d][%s] to be %s, got %s", i, key, expectedValue, rtepts[i][key])
-				// 		}
-				// 	}
-				// }
+				rtepts, ok := fp["RTEPTS"].([]interface{})
+				if !ok {
+					t.Errorf("Expected RTEPTS to be a []interface{}, got %T", fp["RTEPTS"])
+				} else {
+					if len(rtepts) != 3 {
+						t.Errorf("Expected 3 route points, got %d", len(rtepts))
+					}
+
+					expectedPoints := []map[string]string{
+						{"PTID": "WOODY", "TO": "1235", "FL": "F210"},
+						{"PTID": "CIV", "TO": "1239", "FL": "F330"},
+						{"PTID": "NEBUL", "TO": "1240", "FL": "F330"},
+					}
+
+					for i, expectedPt := range expectedPoints {
+						pt, ok := rtepts[i].(map[string]interface{})
+						if !ok {
+							t.Errorf("Expected route point %d to be a map[string]interface{}, got %T", i, rtepts[i])
+							continue
+						}
+
+						for key, expectedValue := range expectedPt {
+							if pt[key] != expectedValue {
+								t.Errorf("Expected route point %d %s to be %s, got %v", i, key, expectedValue, pt[key])
+							}
+						}
+					}
+				}
+
+				//EQP-BEGIN EQCST
+
+				eqcst, ok := fp["EQCST"].([]interface{})
+				if !ok {
+					t.Errorf("Expected EQCST to be a []interface{}, got %T", fp["EQCST"])
+				} else {
+					if len(eqcst) != 2 {
+						t.Errorf("Expected 2 equipments, got %d", len(eqcst))
+					}
+
+					expectedPoints := []string{
+						"W/EQ", "Y/NO",
+					}
+
+					for i, expectedPt := range expectedPoints {
+						pt, ok := eqcst[i].(string)
+						if !ok {
+							t.Errorf("Expected route point %d to be a string, got %T", i, eqcst[i])
+							continue
+						}
+						if pt != expectedPt {
+							t.Errorf("Expected route point %d to be %s, got %v", i, expectedPt, pt)
+						}
+
+					}
+				}
 
 			}},
 		{
