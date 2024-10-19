@@ -5,15 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"reflect"
 	"regexp"
 	"strings"
-
-	"gitlab.com/davidkohl/goflightplan"
 )
 
 type ParseHandler struct {
-	Fn   func(s string) (*goflightplan.Flightplan, error)
+	Fn   func(s string) (map[string]interface{}, error)
 	Name string
 }
 
@@ -46,10 +43,8 @@ func NewParser(opts ParserOpts) *ICAOParser {
 }
 
 // ParseFPLMessage parses an ICAO FPL message and returns a structured FPLMessage.
-func (p *ICAOParser) Parse(s string) (*goflightplan.FlightplanWrapper, error) {
-	fplw := &goflightplan.FlightplanWrapper{}
-
-	var fpl *goflightplan.Flightplan = &goflightplan.Flightplan{}
+func (p *ICAOParser) Parse(s string) (map[string]interface{}, error) {
+	var fpl map[string]interface{} = make(map[string]interface{})
 	var send, rec string
 	//if AFTNHeader is true, try to extract it
 	if p.ParserOpts.AFTNHeader {
@@ -73,12 +68,25 @@ func (p *ICAOParser) Parse(s string) (*goflightplan.FlightplanWrapper, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("TITLE:", t)
+	start := strings.Index(s, "(")
+	end := strings.Index(s, ")")
+	fmt.Println("START", start, "END:", end)
+	if start == -1 || end == -1 {
+		return nil, errors.New("could not get start or end of ICAO message")
+	}
+	s = s[start : end+1]
+	// Remove the prefix "(FPL-" and the trailing parenthesis ")"
+	s = strings.TrimPrefix(s, "(")
+	s = strings.TrimSuffix(s, ")")
 
+	s = strings.ReplaceAll(s, "\n", "")
 	for _, v := range p.ParseHandlers {
-		istart := strings.Index(s, "(")
-		iend := strings.Index(s, ")")
+		if end == -1 {
+			return nil, errors.New("malformed message: missing )")
+		}
 		if v.Name == t {
-			tmpfpl, err := v.Fn(s[istart : iend+1])
+			tmpfpl, err := v.Fn(s)
 			if err != nil {
 				return nil, err
 			}
@@ -87,7 +95,7 @@ func (p *ICAOParser) Parse(s string) (*goflightplan.FlightplanWrapper, error) {
 				return nil, err
 			}
 
-			err = json.Unmarshal(d, fpl)
+			err = json.Unmarshal(d, &fpl)
 			if err != nil {
 				return nil, err
 			}
@@ -95,48 +103,36 @@ func (p *ICAOParser) Parse(s string) (*goflightplan.FlightplanWrapper, error) {
 	}
 
 	if p.ParserOpts.AFTNHeader {
-		fpl.REFDATA.SENDER = send
-		fpl.REFDATA.RECVR = rec
+		fpl["REFDATA"].(map[string]interface{})["SENDER"].(map[string]interface{})["FAC"] = send
+		fpl["REFDATA"].(map[string]interface{})["RECVR"].(map[string]interface{})["FAC"] = rec
 	}
 
-	fplw.Flightplan = *fpl
-	return fplw, nil
+	return fpl, nil
 }
 
-func parseFPL(s string) (*goflightplan.Flightplan, error) {
-	var fpl = &goflightplan.Flightplan{}
-	start := strings.Index(s, "(FPL-")
-	end := strings.Index(s, ")")
-	fmt.Println("start:", start, "END:", end)
-	fmt.Println(s)
-	if start == -1 || end == -1 {
-		return nil, errors.New("could not get start or end of ICAO message")
-	}
-	s = s[start:end]
-	// Remove the prefix "(FPL-" and the trailing parenthesis ")"
-	content := strings.TrimPrefix(s, "(FPL-")
-	content = strings.TrimSuffix(content, ")")
+func parseFPL(s string) (map[string]interface{}, error) {
+	var fpl = make(map[string]interface{}, 0)
 
-	content = strings.ReplaceAll(content, "\n", "")
 	// Split the fields using "-" as the delimiter
-	fields := strings.Split(content, "-")
+	fields := strings.Split(s, "-")
 
 	if len(fields) < 7 {
 		return nil, errors.New("incomplete FPL message")
 	}
+	fmt.Println(fields)
 
 	// Split the aircraft type and wake turbulence category
-	aircraftParts := strings.Split(fields[2], "/")
+	aircraftParts := strings.Split(fields[3], "/")
 	if len(aircraftParts) != 2 {
 		return nil, errors.New("invalid aircraft type or wake turbulence category format")
 	}
 
 	// Extract the departure aerodrome and estimated off-block time (EOBT)
-	departureInfo := fields[4]
+	departureInfo := fields[5]
 
 	// Extract route, destination aerodrome, and estimated elapsed time
-	route := fields[5]
-	destinationInfo := fields[6]
+	route := fields[6]
+	destinationInfo := fields[7]
 	if len(destinationInfo) < 7 {
 		return nil, errors.New("destination information is too short")
 	}
@@ -149,44 +145,41 @@ func parseFPL(s string) (*goflightplan.Flightplan, error) {
 	}
 
 	// Extract and assign values to the FPLMessage struct
-	fpl = &goflightplan.Flightplan{
-		TITLE:  "FPL",
-		ARCID:  fields[0],            // Aircraft ID
-		FLTRUL: string(fields[1][0]), // Flight rules
-		FLTTYP: string(fields[1][1]), // Flight type
-		ARCTYP: aircraftParts[0],     // Aircraft type
-		WKTRC:  aircraftParts[1],     // Wake turbulence category
-		ADEP:   departureInfo[:4],    // Departure aerodrome
-		EOBT:   departureInfo[4:],    // Estimated Off-Block Time (departure time)
-		ROUTE:  route,                // Route
-		ADES:   destinationInfo[:4],  // Destination aerodrome
-		EELT:   eelt,                 // Estimated Elapsed Time
-	}
 
-	if err := parseField18(fpl, fields[7]); err != nil {
+	fpl["TITLE"] = "FPL"
+	fpl["ARCID"] = fields[0]             // Aircraft ID
+	fpl["FLTRUL"] = string(fields[1][0]) // Flight rules
+	fpl["FLTTYP"] = string(fields[1][1]) // Flight type
+	fpl["ARCTYP"] = aircraftParts[0]     // Aircraft type
+	fpl["WKTRC"] = aircraftParts[1]      // Wake turbulence category
+	fpl["ADEP"] = departureInfo[:4]      // Departure aerodrome
+	fpl["EOBT"] = departureInfo[4:]      // Estimated Off-Block Time (departure time)
+	fpl["ROUTE"] = route                 // Route
+	fpl["ADES"] = destinationInfo[:4]    // Destination aerodrome
+	fpl["EELT"] = eelt                   // Estimated Elapsed Time
+
+	if err := parseField18(&fpl, fields[8]); err != nil {
 		return nil, err
 	}
 	return fpl, nil
 }
 
 // ParseCHGMessage parses a CHG message and updates an existing Flightplan.
-func parseCHG(message string) (*goflightplan.Flightplan, error) {
+func parseCHG(s string) (map[string]interface{}, error) {
 
-	var fp *goflightplan.Flightplan = &goflightplan.Flightplan{}
-	if !strings.HasPrefix(message, "(CHG-") {
-		return nil, errors.New("message is not a valid CHG message")
-	}
+	var fpl map[string]interface{} = make(map[string]interface{})
 
 	// Remove the prefix and split the message into parts.
-	content := strings.TrimPrefix(message, "(CHG-")
-	parts := strings.Split(content, "-")
+
+	parts := strings.Split(s, "-")
 
 	if len(parts) < 2 {
 		return nil, errors.New("incomplete CHG message")
 	}
 
-	// The first part after CHG should be the Aircraft ID.
-	fp.ARCID = parts[1]
+	// The first part after CHG should be the Aircraft ID.]\
+	fpl["TITLE"] = "CHG"
+	fpl["ARCID"] = parts[1]
 
 	// Iterate over the remaining parts to handle changes.
 	for i := 2; i < len(parts); i++ {
@@ -196,90 +189,90 @@ func parseCHG(message string) (*goflightplan.Flightplan, error) {
 			newValue := part[pos+1:]
 			switch fieldNum {
 			case "3":
-				fp.ARCTYP = newValue
+				fpl["ARCTYP"] = newValue
 			case "8":
-				fp.ADEP = newValue
+				fpl["ADEP"] = newValue
 			case "13":
-				fp.ADES = newValue
+				fpl["ADES"] = newValue
 				if len(newValue) > 4 {
-					fp.ADES = newValue[:4]
-					fp.EELT = newValue[4:]
+					fpl["ADES"] = newValue[:4]
+					fpl["EELT"] = newValue[4:]
 				}
 			case "15":
-				fp.ROUTE = newValue
+				fpl["ROUTE"] = newValue
 			case "16":
-				fp.ELDT = newValue // Assuming ELDT is relevant here
+				fpl["ELDT"] = newValue // Assuming ELDT is relevant here
 			case "18":
-				if err := parseField18(fp, newValue); err != nil {
+				if err := parseField18(&fpl, newValue); err != nil {
 				}
 			}
 		}
 	}
 
-	return fp, nil
+	return fpl, nil
 }
-func parseCNL(s string) (*goflightplan.Flightplan, error) {
-	var fpl = &goflightplan.Flightplan{}
+func parseCNL(s string) (map[string]interface{}, error) {
+	var fpl = make(map[string]interface{})
 	s = strings.TrimPrefix(s, "(CHG-")
 	parts := strings.Split(s, "-")
 	// (CNL-WMT912-EDJA2010-LIRF-DOF/240228)
-	fpl.TITLE = "CNL"
-	fpl.ARCID = parts[1]
-	fpl.ADEP = parts[2][:4]
-	fpl.EOBT = parts[2][4:]
-	fpl.ADES = parts[3]
-	fpl.DOF = strings.Split(parts[4], "/")[1]
+	fpl["TITLE"] = "CNL"
+	fpl["ARCID"] = parts[1]
+	fpl["ADEP"] = parts[2][:4]
+	fpl["EOBT"] = parts[2][4:]
+	fpl["ADES"] = parts[3]
+	fpl["DOF"] = strings.Split(parts[4], "/")[1]
 
 	return fpl, nil
 }
 
-func parseDLA(s string) (*goflightplan.Flightplan, error) {
-	var fpl = &goflightplan.Flightplan{}
+func parseDLA(s string) (map[string]interface{}, error) {
+	var fpl = make(map[string]interface{})
 	s = strings.TrimPrefix(s, "(CHG-")
 	parts := strings.Split(s, "-")
 	// (DLA-WZZ5322-LYNI1025-EDJA-DOF/240228)
-	fpl.TITLE = "DLA"
-	fpl.ARCID = parts[1]
-	fpl.ADEP = parts[2][:4]
-	fpl.EOBT = parts[2][4:]
-	fpl.ADES = parts[3]
-	fpl.DOF = strings.Split(parts[4], "/")[1]
+	fpl["TITLE"] = "DLA"
+	fpl["ARCID"] = parts[1]
+	fpl["ADEP"] = parts[2][:4]
+	fpl["EOBT"] = parts[2][4:]
+	fpl["ADES"] = parts[3]
+	fpl["DOF"] = strings.Split(parts[4], "/")[1]
 	return fpl, nil
 }
-func parseARR(s string) (*goflightplan.Flightplan, error) {
-	var fpl = &goflightplan.Flightplan{}
+func parseARR(s string) (map[string]interface{}, error) {
+	var fpl = make(map[string]interface{})
 	s = strings.TrimPrefix(s, "(CHG-")
 	parts := strings.Split(s, "-")
 	//(ARR-WZZ301-EDJA0910-BKPR1048)
-	fpl.TITLE = "ARR"
-	fpl.ARCID = parts[1]
-	fpl.ADEP = parts[2][:4]
-	fpl.EOBT = parts[2][4:]
-	fpl.ADES = parts[len(parts)-1][:4]
-	fpl.ELDT = parts[len(parts)-1][4:]
+	fpl["TITLE"] = "ARR"
+	fpl["ARCID"] = parts[1]
+	fpl["ARCID"] = parts[2][:4]
+	fpl["EOBT"] = parts[2][4:]
+	fpl["ADES"] = parts[len(parts)-1][:4]
+	fpl["ELDT"] = parts[len(parts)-1][4:]
 
 	// if len parts > 4, parts[3] is the stop inbetween
 	return fpl, nil
 }
 
-func parseDEP(s string) (*goflightplan.Flightplan, error) {
-	var fpl = &goflightplan.Flightplan{}
+func parseDEP(s string) (map[string]interface{}, error) {
+	var fpl = make(map[string]interface{})
 	s = strings.TrimPrefix(s, "(CHG-")
 	parts := strings.Split(s, "-")
 	//(DEP-WZZ456-BKPR1155-EDJA-DOF/240228)
-	fpl.TITLE = "DEP"
-	fpl.ARCID = parts[1]
-	fpl.ADEP = parts[2][:4]
-	fpl.EOBT = parts[2][4:]
-	fpl.ADES = parts[3][:4]
-	fpl.ELDT = parts[3][4:]
-	fpl.DOF = strings.Split(parts[4], "/")[1]
+	fpl["TITLE"] = "DEP"
+	fpl["ARCID"] = parts[1]
+	fpl["ARCID"] = parts[2][:4]
+	fpl["EOBT"] = parts[2][4:]
+	fpl["ADES"] = parts[3][:4]
+	fpl["EDLT"] = parts[3][4:]
+	fpl["DOF"] = strings.Split(parts[4], "/")[1]
 	return fpl, nil
 }
 
 // ParseOtherInfo handles the parsing of Field 18 and sets the corresponding fields in the Flightplan.
-func parseField18(fp *goflightplan.Flightplan, otherInfo string) error {
-	infoMap := make(map[string]string)
+func parseField18(fp *map[string]interface{}, otherInfo string) error {
+
 	var currentKey string
 	var currentVal strings.Builder
 
@@ -287,7 +280,7 @@ func parseField18(fp *goflightplan.Flightplan, otherInfo string) error {
 	for _, token := range tokens {
 		if pos := strings.Index(token, "/"); pos != -1 {
 			if currentKey != "" {
-				infoMap[currentKey] = strings.TrimSpace(currentVal.String())
+				(*fp)[currentKey] = strings.TrimSpace(currentVal.String())
 				currentVal.Reset()
 			}
 			currentKey = token[:pos]
@@ -298,16 +291,7 @@ func parseField18(fp *goflightplan.Flightplan, otherInfo string) error {
 	}
 
 	if currentKey != "" {
-		infoMap[currentKey] = strings.TrimSpace(currentVal.String())
-	}
-
-	val := reflect.ValueOf(fp).Elem()
-	for k, v := range infoMap {
-		if fieldVal := val.FieldByName(strings.ToUpper(k)); fieldVal.IsValid() && fieldVal.CanSet() {
-			if fieldVal.Kind() == reflect.String {
-				fieldVal.SetString(v)
-			}
-		}
+		(*fp)[currentKey] = strings.TrimSpace(currentVal.String())
 	}
 
 	return nil

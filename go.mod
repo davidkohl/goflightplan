@@ -1,3 +1,3 @@
-module gitlab.com/davidkohl/goflightplan
+module github.com/davidkohl/goflightplan
 
-go 1.22.0
+go 1.23.0
